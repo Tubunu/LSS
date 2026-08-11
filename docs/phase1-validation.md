@@ -2,7 +2,7 @@
 
 ## 状态
 
-**CODE COMPLETE / DEVICE VERIFICATION PENDING**
+**PASS**
 
 ## 已完成
 
@@ -22,11 +22,25 @@
 - `codesign --verify --deep --strict`：PASS。
 - `devicectl` 安装与启动：PASS。
 - 首页真机视觉检查：PASS。
+- 重构后 App 内正常 stop：PASS（两次会话均记录为“捕获已完成”）。
+- background / foreground 保持 session：PASS。
+- 连续后台捕获 376.16 秒：PASS。
+- 长会话后台新增 17,688 帧，总计 18,133/18,133 有效帧、0 无效帧。
+- 长会话关键帧严格封顶 60 张，JSON `selectedFrames` 与落盘 PNG 数一致；帧尺寸均为 1206 × 2622。
+- 系统捕获控件停止路径：PASS，诊断正确记录“用户已停止流播放”。
 
-## 待验证
+## 内存验证边界
 
-- 在重构后的 Phase 1 页面通过系统 Picker 完成一次短捕获与正常 stop。
-- 连续捕获 3 分钟，确认无明显内存持续增长。
-- 确认 background / foreground 不破坏 session，且新 session 目录中诊断 JSON 与帧数一致。
+本阶段没有采集 Instruments 或 RSS 时间序列，因此不能声称完成了精确内存曲线分析。验收“无明显内存持续增长”的依据是：真机后台持续运行超过 6 分钟并处理 18,133 帧、接收队列有界、只持久化最多 60 张帧、App 全程存活且无崩溃。更严格的内存与分配分析留到 Phase 11 性能与稳定性阶段。
 
-阻塞原因是 iOS 系统 Full Display Picker 需要真机上的用户手动确认；`devicectl` 不提供该安全操作。
+## 真机会话证据
+
+- 长会话 ID：`D4BA478E-B3C7-4136-9A6F-9282287C2414`
+- 后台时长：376.155 秒
+- 后台帧增量：17,688
+- 接收 / 有效 / 无效：18,133 / 18,133 / 0
+- 选择帧：60（落盘 PNG：60）
+- 会话缓存占用：约 237 MB
+- 停止方式：iOS 系统捕获控件
+
+用户屏幕内容只导出到 `/tmp` 做本地计数和元数据检查，未提交仓库。

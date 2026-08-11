@@ -4,15 +4,18 @@ LongShot 是一款面向 iPhone / iOS 27+ 的原生滚动长截图 App。用户�
 
 ## 当前状态
 
-Phase 0 技术 Gate 已在 iPhone 16 Pro / iOS 27.0 真机通过：
+Phase 0 技术 Gate 和 Phase 1 Capture Pipeline 已在 iPhone 16 Pro / iOS 27.0 真机通过：
 
 - 系统 Full Display Picker 正常；
 - ScreenCaptureKit `SCStream` 启动和停止正常；
 - 切换到其他 App 后后台持续收帧 59.47 秒；
 - 2932 帧全部有效，后台新增 751 帧；
 - 限量诊断帧能落盘且内容来自其他 App。
+- 重构后的 Capture Pipeline 后台连续运行 376.16 秒；
+- 18,133 帧全部有效，后台新增 17,688 帧；
+- 关键帧缓存严格封顶 60 张，App 内 stop 与系统停止路径均通过。
 
-完整阶段规划见 [PLAN.md](PLAN.md)，真机验证见 [docs/phase0-device-verification.md](docs/phase0-device-verification.md)。
+完整阶段规划见 [PLAN.md](PLAN.md)，真机验证见 [docs/phase0-device-verification.md](docs/phase0-device-verification.md) 和 [docs/phase1-validation.md](docs/phase1-validation.md)。
 
 ## 要求
 
@@ -45,4 +48,4 @@ App 声明 `NSScreenCaptureUsageDescription` 与 `screen-capture` Background Mod
 
 ## 已知限制
 
-当前仓库处于 Phase 0，只包含经真机验证的捕获 PoC。拼接、编辑、导入、历史和导出将按 `PLAN.md` 后续 Phase 顺序实现。
+当前仓库已完成 Phase 1，正进入关键帧筛选阶段。拼接、编辑、导入、历史和导出将按 `PLAN.md` 后续 Phase 顺序实现。
