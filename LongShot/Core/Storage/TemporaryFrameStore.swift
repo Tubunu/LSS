@@ -32,6 +32,10 @@ struct TemporaryFrameStore: Sendable {
         directory.appendingPathComponent("diagnostics.json")
     }
 
+    func frameMetadataURL() -> URL {
+        directory.appendingPathComponent("frames.json")
+    }
+
     func remove(fileManager: FileManager = .default) throws {
         guard fileManager.fileExists(atPath: directory.path) else { return }
         try fileManager.removeItem(at: directory)
