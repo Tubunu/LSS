@@ -1,0 +1,46 @@
+name: LongShot
+options:
+  minimumXcodeGenVersion: 2.44.1
+  deploymentTarget:
+    iOS: "27.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "27.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    SUPPORTS_MACCATALYST: false
+    PRODUCT_BUNDLE_IDENTIFIER: com.example.LongShot
+    CURRENT_PROJECT_VERSION: "1"
+    MARKETING_VERSION: "0.1.0"
+targets:
+  LongShot:
+    type: application
+    platform: iOS
+    sources:
+      - path: LongShot
+    info:
+      path: LongShot/Info.plist
+      properties:
+        CFBundleDisplayName: LongShot
+        NSScreenCaptureUsageDescription: "LongShot 需要读取你选择的屏幕内容，以在本机生成滚动长截图。"
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UIBackgroundModes:
+          - screen-capture
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    settings:
+      base:
+        PRODUCT_NAME: LongShot
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: true
+    dependencies:
+      - sdk: ScreenCaptureKit.framework
+      - sdk: CoreImage.framework
+      - sdk: ImageIO.framework
+    scheme:
+      gatherCoverageData: false

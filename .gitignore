@@ -1,0 +1,13 @@
+.DS_Store
+DerivedData/
+build/
+*.xcarchive
+*.ipa
+*.dSYM.zip
+*.mobileprovision
+*.p12
+*.cer
+xcuserdata/
+*.xcuserstate
+LongShot/Phase0Frames/
+
