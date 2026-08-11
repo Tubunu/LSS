@@ -44,3 +44,17 @@ targets:
       - sdk: ImageIO.framework
     scheme:
       gatherCoverageData: false
+      testTargets:
+        - LongShotTests
+  LongShotTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: LongShotTests
+    dependencies:
+      - target: LongShot
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.LongShotTests
+        GENERATE_INFOPLIST_FILE: true
+        TARGETED_DEVICE_FAMILY: "1"

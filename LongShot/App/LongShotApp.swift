@@ -2,12 +2,12 @@ import SwiftUI
 
 @main
 struct LongShotApp: App {
-    @StateObject private var captureManager = Phase0CaptureManager()
+    @StateObject private var captureManager = ScreenCaptureManager()
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
-            Phase0CaptureView(manager: captureManager)
+            HomeView(captureManager: captureManager)
         }
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {

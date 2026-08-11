@@ -8,11 +8,12 @@
 
 ## 执行状态（2026-08-11）
 
-- 当前阶段：Phase 0 — iOS 27 ScreenCaptureKit 技术验证（PASS）。
+- 当前阶段：Phase 1 — 项目骨架与 Capture Pipeline（CODE COMPLETE / DEVICE VERIFICATION PENDING）。
 - 开发环境：`/Users/tao/Downloads/Xcode-beta.app`，Xcode 27.0，iPhoneOS 27.0 SDK。
 - 真机：`TaoiPhone`，iPhone 16 Pro，iOS 27.0，已连接且开启开发者模式。
 - SDK 差异：iOS 上 `SCContentSharingPickerMode` 不可用，Full Display 使用 `presentPicker(using: .display)`；`minimumFrameInterval` / `pixelFormat` / `queueDepth` 为 macOS 专属配置。
 - Gate 结果：真机 Full Display 选择 PASS；跨 App 后台 59.47 秒 PASS；后台新增 751 帧；2932/2932 有效帧；8 张诊断帧落盘；诊断帧确认来自系统 Picker 和其他 App；正常 stop 回到 idle PASS。
+- Phase 1 当前结果：分层 Capture Pipeline、首页、状态机、临时帧存储、诊断与单元测试已完成；真机签名构建、验签、安装、启动和首页视觉检查 PASS；重构后 3 分钟连续捕获仍需用户在系统 Picker 手动确认后验收。
 
 ---
 
