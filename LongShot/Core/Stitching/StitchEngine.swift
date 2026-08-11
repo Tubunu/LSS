@@ -3,10 +3,12 @@ import Foundation
 struct StitchEngine: Sendable {
     private let thresholds: StitchThresholds
     private let overlapDetector: OverlapDetector
+    private let fixedRegionDetector: FixedRegionDetector
 
     init(thresholds: StitchThresholds = .init()) {
         self.thresholds = thresholds
         overlapDetector = OverlapDetector(thresholds: thresholds)
+        fixedRegionDetector = FixedRegionDetector(thresholds: thresholds)
     }
 
     func makePlan(frames: [AnalyzedFrame]) throws -> StitchPlan {
@@ -22,21 +24,51 @@ struct StitchEngine: Sendable {
             throw StitchError.incompatibleFrames
         }
 
+        let fixedRegions = try fixedRegionDetector.detect(frames: frames)
         var placements = [FramePlacement(frameIndex: first.index, offsetY: 0)]
         var segments = [StitchSegment]()
+        var skippedFrameIndices = [Int]()
         var warnings = [StitchWarning]()
         var outputOffset = 0
+        var upper = first
 
-        for pairIndex in 0 ..< frames.count - 1 {
-            let upper = frames[pairIndex]
-            let lower = frames[pairIndex + 1]
-            let match = try overlapDetector.detect(upper: upper, lower: lower)
+        for candidateIndex in 1 ..< frames.count {
+            let lower = frames[candidateIndex]
+            let match = try overlapDetector.detect(
+                upper: upper,
+                lower: lower,
+                excluding: fixedRegions
+            )
+            if match.confidence < thresholds.minimumConfidence {
+                let reverse = try overlapDetector.detect(
+                    upper: lower,
+                    lower: upper,
+                    excluding: fixedRegions
+                )
+                let rollbackLimit = Int(
+                    (Double(first.sourceHeight) * thresholds.maximumMinorRollbackRatio).rounded(.up)
+                )
+                if reverse.confidence >= thresholds.minimumConfidence,
+                   reverse.offset <= rollbackLimit
+                {
+                    skippedFrameIndices.append(lower.index)
+                    warnings.append(
+                        StitchWarning(
+                            kind: .rollbackRecovered,
+                            pairIndex: candidateIndex - 1,
+                            message: "第 \(candidateIndex + 1) 张截图为小幅回滚帧，已跳过"
+                        )
+                    )
+                    continue
+                }
+            }
+
             let warning: StitchWarning?
             if match.confidence < thresholds.minimumConfidence {
                 let issue = StitchWarning(
                     kind: .lowConfidence,
-                    pairIndex: pairIndex,
-                    message: "第 \(pairIndex + 1) 与第 \(pairIndex + 2) 张截图重叠置信度不足"
+                    pairIndex: candidateIndex - 1,
+                    message: "第 \(upper.index + 1) 与第 \(lower.index + 1) 张截图重叠置信度不足"
                 )
                 warning = issue
                 warnings.append(issue)
@@ -54,11 +86,12 @@ struct StitchEngine: Sendable {
                     overlap: match.overlap,
                     confidence: match.confidence,
                     seam: match.seam,
-                    fixedRegions: [],
+                    fixedRegions: fixedRegions,
                     warning: warning,
                     debugCandidates: match.candidates
                 )
             )
+            upper = lower
         }
 
         return StitchPlan(
@@ -67,6 +100,7 @@ struct StitchEngine: Sendable {
             outputHeight: first.sourceHeight + outputOffset,
             placements: placements,
             segments: segments,
+            skippedFrameIndices: skippedFrameIndices,
             warnings: warnings
         )
     }

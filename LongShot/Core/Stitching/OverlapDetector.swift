@@ -7,7 +7,11 @@ struct OverlapDetector: Sendable {
         self.thresholds = thresholds
     }
 
-    func detect(upper: AnalyzedFrame, lower: AnalyzedFrame) throws -> OverlapMatch {
+    func detect(
+        upper: AnalyzedFrame,
+        lower: AnalyzedFrame,
+        excluding fixedRegions: [FixedRegion] = []
+    ) throws -> OverlapMatch {
         guard upper.sourceWidth == lower.sourceWidth,
               upper.sourceHeight == lower.sourceHeight,
               upper.analysisWidth == lower.analysisWidth,
@@ -16,6 +20,7 @@ struct OverlapDetector: Sendable {
         else {
             throw StitchError.incompatibleFrames
         }
+        let mask = FixedRegionMask(frame: upper, regions: fixedRegions)
 
         let height = upper.analysisHeight
         let minimumDisplacement = max(
@@ -36,7 +41,8 @@ struct OverlapDetector: Sendable {
                     normalizedError: error(
                         upper: upper,
                         lower: lower,
-                        displacement: displacement
+                        displacement: displacement,
+                        mask: mask
                     )
                 )
             )
@@ -54,7 +60,12 @@ struct OverlapDetector: Sendable {
         }
         let secondError = separated?.normalizedError ?? 1
         let uniqueness = max(0, min(1, (secondError - best.normalizedError) / max(secondError, 0.000_001)))
-        let texture = textureScore(upper: upper, lower: lower, displacement: best.displacement)
+        let texture = textureScore(
+            upper: upper,
+            lower: lower,
+            displacement: best.displacement,
+            mask: mask
+        )
         let matchQuality = max(
             0,
             min(1, 1 - best.normalizedError / max(thresholds.acceptableMatchError, 0.000_001))
@@ -70,7 +81,8 @@ struct OverlapDetector: Sendable {
         let analysisSeam = selectSeam(
             upper: upper,
             lower: lower,
-            displacement: best.displacement
+            displacement: best.displacement,
+            mask: mask
         )
         let sourceSeam = min(
             sourceOverlap,
@@ -97,7 +109,8 @@ struct OverlapDetector: Sendable {
     private func error(
         upper: AnalyzedFrame,
         lower: AnalyzedFrame,
-        displacement: Int
+        displacement: Int,
+        mask: FixedRegionMask
     ) -> Double {
         let overlap = upper.analysisHeight - displacement
         guard overlap > 0 else { return 1 }
@@ -108,6 +121,9 @@ struct OverlapDetector: Sendable {
         for lowerY in 0 ..< overlap {
             let upperY = lowerY + displacement
             for x in horizontalMargin ..< (upper.analysisWidth - horizontalMargin) {
+                guard !mask.contains(x: x, y: upperY),
+                      !mask.contains(x: x, y: lowerY)
+                else { continue }
                 let upperValue = upper.luminance[upperY * upper.analysisWidth + x]
                 let lowerValue = lower.luminance[lowerY * lower.analysisWidth + x]
                 total += abs(Int(upperValue) - Int(lowerValue))
@@ -122,7 +138,8 @@ struct OverlapDetector: Sendable {
     private func textureScore(
         upper: AnalyzedFrame,
         lower: AnalyzedFrame,
-        displacement: Int
+        displacement: Int,
+        mask: FixedRegionMask
     ) -> Double {
         let overlap = upper.analysisHeight - displacement
         guard overlap > 0 else { return 0 }
@@ -132,6 +149,9 @@ struct OverlapDetector: Sendable {
         for y in 0 ..< overlap {
             let upperY = y + displacement
             for x in 0 ..< upper.analysisWidth {
+                guard !mask.contains(x: x, y: upperY),
+                      !mask.contains(x: x, y: y)
+                else { continue }
                 values.append(Double(upper.luminance[upperY * upper.analysisWidth + x]))
                 values.append(Double(lower.luminance[y * lower.analysisWidth + x]))
             }
@@ -149,7 +169,8 @@ struct OverlapDetector: Sendable {
     private func selectSeam(
         upper: AnalyzedFrame,
         lower: AnalyzedFrame,
-        displacement: Int
+        displacement: Int,
+        mask: FixedRegionMask
     ) -> Int {
         let overlap = upper.analysisHeight - displacement
         let lowerBound = max(
@@ -167,18 +188,37 @@ struct OverlapDetector: Sendable {
         guard upperBound >= lowerBound else { return max(0, midpoint) }
         for lowerY in lowerBound ... upperBound {
             let upperY = lowerY + displacement
+            guard !(0 ..< upper.analysisWidth).allSatisfy({
+                mask.contains(x: $0, y: upperY) || mask.contains(x: $0, y: lowerY)
+            }) else { continue }
             var rowTotal = 0
+            var edgeTotal = 0
+            var sampleCount = 0
             for x in 0 ..< upper.analysisWidth {
+                guard !mask.contains(x: x, y: upperY),
+                      !mask.contains(x: x, y: lowerY)
+                else { continue }
                 let upperValue = upper.luminance[upperY * upper.analysisWidth + x]
                 let lowerValue = lower.luminance[lowerY * lower.analysisWidth + x]
                 rowTotal += abs(Int(upperValue) - Int(lowerValue))
+                if lowerY > 0, upperY > 0 {
+                    let upperAbove = upper.luminance[(upperY - 1) * upper.analysisWidth + x]
+                    let lowerAbove = lower.luminance[(lowerY - 1) * lower.analysisWidth + x]
+                    edgeTotal += abs(Int(upperValue) - Int(upperAbove))
+                    edgeTotal += abs(Int(lowerValue) - Int(lowerAbove))
+                }
+                sampleCount += 1
             }
-            let rowError = Double(rowTotal) / Double(upper.analysisWidth * 255)
-            if rowError < bestError - 0.000_001
-                || (abs(rowError - bestError) < 0.000_001
+            guard sampleCount > 0 else { continue }
+            let rowError = Double(rowTotal) / Double(sampleCount * 255)
+            let edgePenalty = Double(edgeTotal) / Double(sampleCount * 2 * 255)
+                * thresholds.seamEdgePenaltyWeight
+            let seamScore = rowError + edgePenalty
+            if seamScore < bestError - 0.000_001
+                || (abs(seamScore - bestError) < 0.000_001
                     && abs(lowerY - midpoint) < abs(bestRow - midpoint))
             {
-                bestError = rowError
+                bestError = seamScore
                 bestRow = lowerY
             }
         }

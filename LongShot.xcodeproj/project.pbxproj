@@ -16,6 +16,7 @@
 		2DEE7B53D67BE92058684253 /* OverlapDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA261D48411BD2368B1EC0B /* OverlapDetector.swift */; };
 		3F118DFC3580655882F151F7 /* image_feed.json in Resources */ = {isa = PBXBuildFile; fileRef = 72C0CDBC6D59F3B9AFDCF807 /* image_feed.json */; };
 		43B9002E6BD4F6ABC9E7A43D /* CaptureStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BACD7E7C67B9684FB99501D0 /* CaptureStateTests.swift */; };
+		4A07E48DE5E3673BA3325E1D /* FixedRegionDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27524EFDA8355CE13946A6E9 /* FixedRegionDetector.swift */; };
 		4D8679B9FEBA7B5583663BF1 /* StitchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5146757BE4CAF662FCBA5517 /* StitchModels.swift */; };
 		536CD4F98308A9C0C5980476 /* CaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B31476582D321978DDC5F0C4 /* CaptureView.swift */; };
 		56BC68C05E52BBA736AEA1AE /* CaptureState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6E44AE88EEFCF88819877F4 /* CaptureState.swift */; };
@@ -31,6 +32,7 @@
 		AE91A9A69E83BD91568DA3F8 /* StitchEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCDAB92ECCF12876490FABE0 /* StitchEngine.swift */; };
 		B127BDFE26D372A1D30902C4 /* ScreenCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA61F861091E15D9572041D5 /* ScreenCaptureManager.swift */; };
 		D053F6D6F4528B1295F06403 /* FrameSamplingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87F9BC0098E79B9B1D5DE8C2 /* FrameSamplingModels.swift */; };
+		D0919642354C87C2CC0DCE0F /* FixedRegionDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10C63E3774C3C9060E98859A /* FixedRegionDetectorTests.swift */; };
 		D7E744E24AF314527440D405 /* FrameSamplingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3927444221A87DBF4D1C0FF4 /* FrameSamplingEngine.swift */; };
 		DAF96E53702990A81057503C /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD849587C04D847B77892A7A /* HomeView.swift */; };
 		DD7BF6CF5045B7E2E97EE52D /* ScreenCaptureKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 853D9693B052841B7F3F03D3 /* ScreenCaptureKit.framework */; };
@@ -53,6 +55,8 @@
 /* Begin PBXFileReference section */
 		0B85075191926E43A3F184A9 /* simple_article.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = simple_article.json; sourceTree = "<group>"; };
 		0E7FD86AB06C0511D29F88FE /* CaptureDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureDiagnostics.swift; sourceTree = "<group>"; };
+		10C63E3774C3C9060E98859A /* FixedRegionDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixedRegionDetectorTests.swift; sourceTree = "<group>"; };
+		27524EFDA8355CE13946A6E9 /* FixedRegionDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixedRegionDetector.swift; sourceTree = "<group>"; };
 		3281F9AC9A9FCC7EBE25E22A /* LongShotTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LongShotTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		35C8DB771BD46EA00D431C43 /* LongShotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LongShotApp.swift; sourceTree = "<group>"; };
 		3927444221A87DBF4D1C0FF4 /* FrameSamplingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameSamplingEngine.swift; sourceTree = "<group>"; };
@@ -183,6 +187,7 @@
 			children = (
 				94BB4159FC2FA8144E986031 /* CaptureDiagnosticsTests.swift */,
 				BACD7E7C67B9684FB99501D0 /* CaptureStateTests.swift */,
+				10C63E3774C3C9060E98859A /* FixedRegionDetectorTests.swift */,
 				5EF73C1717CF4154814A07C1 /* FrameSamplingEngineTests.swift */,
 				CB1C59BD68A4F06F120D5B62 /* StitchEngineTests.swift */,
 				81161C42712775549814D7CE /* TemporaryFrameStoreTests.swift */,
@@ -225,6 +230,7 @@
 		ACAC3F6A75E398A2D1506046 /* Stitching */ = {
 			isa = PBXGroup;
 			children = (
+				27524EFDA8355CE13946A6E9 /* FixedRegionDetector.swift */,
 				918627045470DC400C04CC6E /* FrameAnalyzer.swift */,
 				6EA261D48411BD2368B1EC0B /* OverlapDetector.swift */,
 				CCDAB92ECCF12876490FABE0 /* StitchEngine.swift */,
@@ -394,6 +400,7 @@
 			files = (
 				995561DFFCDF599A6072DA77 /* CaptureDiagnosticsTests.swift in Sources */,
 				43B9002E6BD4F6ABC9E7A43D /* CaptureStateTests.swift in Sources */,
+				D0919642354C87C2CC0DCE0F /* FixedRegionDetectorTests.swift in Sources */,
 				66E4A23B8D26D8C15CA1DC03 /* FrameSamplingEngineTests.swift in Sources */,
 				75D41CEBF29191720A56DFD6 /* StitchEngineTests.swift in Sources */,
 				93913649B8724A4241BD9C57 /* TemporaryFrameStoreTests.swift in Sources */,
@@ -407,6 +414,7 @@
 				5930FAEC6F47205A747B1CE0 /* CaptureDiagnostics.swift in Sources */,
 				56BC68C05E52BBA736AEA1AE /* CaptureState.swift in Sources */,
 				536CD4F98308A9C0C5980476 /* CaptureView.swift in Sources */,
+				4A07E48DE5E3673BA3325E1D /* FixedRegionDetector.swift in Sources */,
 				FD7851F10CB847BDC00384EA /* FrameAnalyzer.swift in Sources */,
 				5F8481B296202EDC42AAEDBA /* FrameSampler.swift in Sources */,
 				D7E744E24AF314527440D405 /* FrameSamplingEngine.swift in Sources */,

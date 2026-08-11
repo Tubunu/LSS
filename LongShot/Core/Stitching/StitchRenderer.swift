@@ -9,8 +9,13 @@ struct StitchRenderer: Sendable {
     }
 
     func render(plan: StitchPlan, images: [CGImage]) throws -> CGImage {
-        guard images.count == plan.placements.count,
-              images.allSatisfy({ $0.width == plan.sourceWidth && $0.height == plan.sourceHeight })
+        let referencedIndices = plan.placements.map(\.frameIndex)
+            + plan.segments.flatMap { [$0.upperFrameIndex, $0.lowerFrameIndex] }
+        guard !referencedIndices.isEmpty,
+              referencedIndices.allSatisfy(images.indices.contains),
+              referencedIndices.allSatisfy({
+                  images[$0].width == plan.sourceWidth && images[$0].height == plan.sourceHeight
+              })
         else {
             throw StitchError.incompatibleFrames
         }
@@ -24,8 +29,9 @@ struct StitchRenderer: Sendable {
         let decoded = try images.map(decodeRGBA)
         let bytesPerRow = plan.sourceWidth * 4
         var output = [UInt8](repeating: 0, count: bytesPerRow * plan.outputHeight)
+        let firstFrameIndex = plan.placements[0].frameIndex
         copyRows(
-            from: decoded[0],
+            from: decoded[firstFrameIndex],
             sourceStartY: 0,
             sourceHeight: plan.sourceHeight,
             to: &output,
@@ -38,7 +44,7 @@ struct StitchRenderer: Sendable {
             let sourceStartY = min(max(segment.seam, 0), plan.sourceHeight - 1)
             let placement = plan.placements[segmentIndex + 1]
             copyRows(
-                from: decoded[segmentIndex + 1],
+                from: decoded[segment.lowerFrameIndex],
                 sourceStartY: sourceStartY,
                 sourceHeight: plan.sourceHeight - sourceStartY,
                 to: &output,

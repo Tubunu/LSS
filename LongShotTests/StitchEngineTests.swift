@@ -9,7 +9,10 @@ final class StitchEngineTests: XCTestCase {
             let frames = makeFrames(fixture: fixture)
             let plan = try StitchEngine().makePlan(frames: frames)
 
-            XCTAssertTrue(plan.isRenderable, name)
+            XCTAssertTrue(
+                plan.isRenderable,
+                "\(name) regions=\(plan.segments.first?.fixedRegions ?? [])"
+            )
             XCTAssertEqual(plan.warnings, [], name)
             XCTAssertEqual(
                 plan.segments.map(\.offset),

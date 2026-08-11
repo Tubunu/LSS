@@ -10,6 +10,17 @@ struct StitchThresholds: Sendable {
     var candidateSeparation = 3
     var seamSearchLowerBoundRatio = 0.20
     var seamSearchUpperBoundRatio = 0.80
+    var seamEdgePenaltyWeight = 0.20
+    var fixedRegionBlockSize = 4
+    var fixedPixelTolerance: UInt8 = 10
+    var fixedMinimumEdge: UInt8 = 14
+    var fixedMinimumStableEdgeRatio = 0.06
+    var fixedMinimumBandCoverageRatio = 0.30
+    var fixedMinimumComponentBlocks = 2
+    var fixedRegionPadding = 2
+    var fixedRegionMinimumFrames = 3
+    var maximumFixedBandRatio = 0.30
+    var maximumMinorRollbackRatio = 0.16
     var maximumRenderDimension = 32000
 }
 
@@ -38,15 +49,29 @@ struct OverlapMatch: Codable, Equatable, Sendable {
     var candidates: [OverlapCandidate]
 }
 
+enum FixedRegionKind: String, Codable, Sendable {
+    case topBar
+    case bottomBar
+    case floating
+}
+
 struct FixedRegion: Codable, Equatable, Sendable {
-    var startY: Int
-    var endY: Int
+    var kind: FixedRegionKind
+    var x: Int
+    var y: Int
+    var width: Int
+    var height: Int
     var confidence: Double
 }
 
 enum StitchWarningKind: String, Codable, Sendable {
     case lowConfidence
     case incompatibleFrames
+    case rollbackRecovered
+
+    var isBlocking: Bool {
+        self != .rollbackRecovered
+    }
 }
 
 struct StitchWarning: Codable, Equatable, Sendable {
@@ -78,10 +103,11 @@ struct StitchPlan: Codable, Equatable, Sendable {
     var outputHeight: Int
     var placements: [FramePlacement]
     var segments: [StitchSegment]
+    var skippedFrameIndices: [Int]
     var warnings: [StitchWarning]
 
     var isRenderable: Bool {
-        warnings.isEmpty
+        !warnings.contains { $0.kind.isBlocking }
     }
 }
 
