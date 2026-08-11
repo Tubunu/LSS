@@ -4,7 +4,7 @@ LongShot 是一款面向 iPhone / iOS 27+ 的原生滚动长截图 App。用户�
 
 ## 当前状态
 
-Phase 0 技术 Gate、Phase 1 Capture Pipeline 和 Phase 2 自适应关键帧筛选已在 iPhone 16 Pro / iOS 27.0 真机通过：
+Phase 0 技术 Gate、Phase 1 Capture Pipeline、Phase 2 自适应关键帧筛选和 Phase 3 StitchEngine MVP 已在 iPhone 16 Pro / iOS 27.0 真机通过：
 
 - 系统 Full Display Picker 正常；
 - ScreenCaptureKit `SCStream` 启动和停止正常；
@@ -16,6 +16,8 @@ Phase 0 技术 Gate、Phase 1 Capture Pipeline 和 Phase 2 自适应关键帧筛
 - 关键帧缓存严格封顶 60 张，App 内 stop 与系统停止路径均通过。
 - 自适应采样使用轻量灰度签名、感知哈希和纵向位移估计；
 - Phase 2 真机会话从 751 张有效流帧中保留 37 张关键帧，并写入逐帧决策元数据。
+- StitchEngine 能检测真实纵向重叠并生成 offset、confidence、seam、warning 和调试候选；
+- 四类可拼接 fixture 与低置信度拒绝、像素级基础渲染闭环均通过真机测试。
 
 完整阶段规划见 [PLAN.md](PLAN.md)，真机验证见 `docs/phase*-validation.md`。
 
@@ -50,4 +52,4 @@ App 声明 `NSScreenCaptureUsageDescription` 与 `screen-capture` Background Mod
 
 ## 已知限制
 
-当前仓库已完成 Phase 2，正进入 StitchEngine MVP。编辑、导入、历史和导出将按 `PLAN.md` 后续 Phase 顺序实现。
+当前仓库已完成 Phase 3，正进入固定区域检测与高级拼接。编辑、导入、历史和导出将按 `PLAN.md` 后续 Phase 顺序实现。

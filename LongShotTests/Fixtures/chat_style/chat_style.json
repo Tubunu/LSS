@@ -1,0 +1,8 @@
+{
+  "name": "chat_style",
+  "style": "chat",
+  "width": 32,
+  "height": 64,
+  "offsets": [0, 18, 36],
+  "expectedFinalHeight": 100
+}

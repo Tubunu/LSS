@@ -1,0 +1,8 @@
+{
+  "name": "settings_list",
+  "style": "settings",
+  "width": 32,
+  "height": 64,
+  "offsets": [0, 20, 40],
+  "expectedFinalHeight": 104
+}

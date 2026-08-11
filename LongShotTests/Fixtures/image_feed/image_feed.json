@@ -1,0 +1,8 @@
+{
+  "name": "image_feed",
+  "style": "imageFeed",
+  "width": 32,
+  "height": 64,
+  "offsets": [0, 24, 48],
+  "expectedFinalHeight": 112
+}

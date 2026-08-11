@@ -1,0 +1,8 @@
+{
+  "name": "edge_cases",
+  "style": "unrelated",
+  "width": 32,
+  "height": 64,
+  "offsets": [0, 20],
+  "expectedFinalHeight": 84
+}

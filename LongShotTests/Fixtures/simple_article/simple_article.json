@@ -1,0 +1,8 @@
+{
+  "name": "simple_article",
+  "style": "article",
+  "width": 32,
+  "height": 64,
+  "offsets": [0, 16, 32],
+  "expectedFinalHeight": 96
+}

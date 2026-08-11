@@ -8,13 +8,14 @@
 
 ## 执行状态（2026-08-11）
 
-- 当前阶段：Phase 3 — StitchEngine MVP（READY）。
+- 当前阶段：Phase 4 — FixedRegionDetector 与高级拼接（READY）。
 - 开发环境：`/Users/tao/Downloads/Xcode-beta.app`，Xcode 27.0，iPhoneOS 27.0 SDK。
 - 真机：`TaoiPhone`，iPhone 16 Pro，iOS 27.0，已连接且开启开发者模式。
 - SDK 差异：iOS 上 `SCContentSharingPickerMode` 不可用，Full Display 使用 `presentPicker(using: .display)`；`minimumFrameInterval` / `pixelFormat` / `queueDepth` 为 macOS 专属配置。
 - Gate 结果：真机 Full Display 选择 PASS；跨 App 后台 59.47 秒 PASS；后台新增 751 帧；2932/2932 有效帧；8 张诊断帧落盘；诊断帧确认来自系统 Picker 和其他 App；正常 stop 回到 idle PASS。
 - Phase 1 结果：PASS。分层 Capture Pipeline、首页、状态机、临时帧存储、诊断与单元测试已完成；真机签名构建、验签、安装、启动和首页视觉检查 PASS。重构后真机后台连续捕获 376.16 秒，后台新增 17,688 帧，18,133/18,133 帧有效、0 无效，持久化关键帧严格封顶 60 张；另有两次 App 内正常 stop 会话。未采集 Instruments/RSS 时间序列，内存验收依据为 6 分钟持续运行、处理有界且无崩溃，不等同于精确内存剖析。
 - Phase 2 结果：PASS。实现轻量灰度签名、感知哈希、重复检测、纵向位移估计、最小位移、快速滚动增密、最大间隔保护、集中阈值与逐帧元数据；8 个采样 fixture 真机测试通过。真机会话 751/751 帧有效，筛选 37 张，PNG 与元数据数量一致，App 内正常 stop；会话实际约 23 秒，静止 10 秒行为由确定性 fixture 覆盖，未声称真机静止段达到 10 秒。
+- Phase 3 结果：PASS。完成 FrameAnalyzer、真实纵向 overlap 搜索、offset / confidence、StitchPlan、基础 seam、低置信度 warning、调试 JSON 与基础 renderer；simple article、settings list、chat style、image feed、unrelated edge case fixtures 在 iOS 27 真机通过，包含像素级分析—计划—渲染闭环。当前 renderer 有 32,000 px 单边上限并使用整幅 RGBA 缓冲，超长图分块渲染留待后续阶段；固定 UI 区域留待 Phase 4。
 
 ---
 
