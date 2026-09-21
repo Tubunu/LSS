@@ -1,4 +1,4 @@
-﻿#import <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #import <CoreMedia/CoreMedia.h>
 #import <CoreGraphics/CoreGraphics.h>
 
@@ -10,10 +10,11 @@ typedef NS_ENUM(NSInteger, SCStreamOutputType) {
     SCStreamOutputTypeMic = 2
 };
 
-typedef NS_ENUM(NSInteger, SCContentSharingPickerMode) {
-    SCContentSharingPickerModeDisplay = 0,
-    SCContentSharingPickerModeWindow = 1,
-    SCContentSharingPickerModeApplication = 2
+typedef NS_ENUM(NSInteger, SCShareableContentStyle) {
+    SCShareableContentStyleNone = 0,
+    SCShareableContentStyleWindow = 1,
+    SCShareableContentStyleDisplay = 2,
+    SCShareableContentStyleApplication = 3
 };
 
 @class SCStream;
@@ -69,7 +70,8 @@ typedef NS_ENUM(NSInteger, SCContentSharingPickerMode) {
 
 - (void)addObserver:(id<SCContentSharingPickerObserver>)observer NS_SWIFT_NAME(add(_:));
 - (void)removeObserver:(id<SCContentSharingPickerObserver>)observer NS_SWIFT_NAME(remove(_:));
-- (void)presentUsing:(SCContentSharingPickerMode)mode NS_SWIFT_NAME(present(using:));
+- (void)present;
+- (void)presentPickerUsingContentStyle:(SCShareableContentStyle)contentStyle NS_SWIFT_NAME(present(using:));
 @end
 
 NS_ASSUME_NONNULL_END

@@ -1,4 +1,4 @@
-﻿#import <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 #import <CoreMedia/CoreMedia.h>
 #import <CoreGraphics/CoreGraphics.h>
 
@@ -43,5 +43,7 @@
 + (instancetype)sharedPicker { return [SCContentSharingPicker new]; }
 - (void)addObserver:(id)observer {}
 - (void)removeObserver:(id)observer {}
+- (void)present {}
+- (void)presentPickerUsingContentStyle:(NSInteger)mode {}
 - (void)presentUsing:(NSInteger)mode {}
 @end

@@ -28,6 +28,9 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
         picker.defaultConfiguration = configuration
     }
 
+    private static let pickerStyleSelector = Selector(("presentPickerUsingContentStyle:"))
+    private static let pickerBasicSelector = Selector(("present"))
+
     deinit {
         picker.remove(self)
         picker.isActive = false
@@ -48,7 +51,18 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
         backgroundStartFrameCount = nil
         isIntentionalStop = false
         state = .selectingContent
-        picker.present(using: .display)
+
+        // 确保激活 Picker
+        picker.isActive = true
+
+        // 动态安全探测 Selector，优先官方样式选择器，降级无参选择器，杜绝未捕获异常闪退
+        if picker.responds(to: Self.pickerStyleSelector) {
+            picker.present(using: .display)
+        } else if picker.responds(to: Self.pickerBasicSelector) {
+            picker.present()
+        } else {
+            state = .failed(message: "当前系统的屏幕捕获选择器不可用")
+        }
     }
 
     func stopCapture() {
