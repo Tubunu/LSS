@@ -1,0 +1,166 @@
+name: Build Release IPA
+
+on:
+  push:
+    branches: [main, master]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: '是否发布到 GitHub Releases'
+        required: false
+        type: boolean
+        default: true
+      app_version:
+        description: '应用版本号 (例如 1.0.0)'
+        required: false
+        default: '1.0.0'
+      bundle_id:
+        description: '自定义 Bundle ID (可选，留空使用默认)'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    name: Build & Package IPA
+    runs-on: macos-15
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          echo "Available Xcode versions:"
+          ls -d /Applications/Xcode*
+          # 优先选择最新 Xcode 16，若没有则使用系统默认 Xcode
+          if [ -d "/Applications/Xcode_16.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_16.app
+          elif [ -d "/Applications/Xcode_16.1.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_16.1.app
+          elif [ -d "/Applications/Xcode.app" ]; then
+            sudo xcode-select -s /Applications/Xcode.app
+          fi
+          xcodebuild -version
+
+      - name: Install Tools
+        run: |
+          brew install xcodegen
+
+      - name: Configure Project Settings
+        run: |
+          # 自定义版本号配置
+          if [ -n "${{ inputs.app_version }}" ]; then
+            sed -i '' "s/MARKETING_VERSION: \".*\"/MARKETING_VERSION: \"${{ inputs.app_version }}\"/g" project.yml
+          fi
+          # 自定义 Bundle Identifier
+          if [ -n "${{ inputs.bundle_id }}" ]; then
+            sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER: com.example.LongShot/PRODUCT_BUNDLE_IDENTIFIER: ${{ inputs.bundle_id }}/g" project.yml
+          fi
+
+      - name: Generate Xcode Project
+        run: |
+          xcodegen generate
+
+      - name: Build & Package IPA
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          PROVISION_PROFILE_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD || 'actions-keychain-pass' }}
+        run: |
+          mkdir -p build
+
+          # 判断是否存在开发者证书与描述文件
+          if [ -n "$CERTIFICATE_BASE64" ] && [ -n "$PROVISION_PROFILE_BASE64" ]; then
+            echo "==> 检测到签名证书，开始导入钥匙串并执行签名构建..."
+            
+            KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
+            security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+            security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+            security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+            # 导入证书
+            echo "$CERTIFICATE_BASE64" | base64 --decode > $RUNNER_TEMP/cert.p12
+            security import $RUNNER_TEMP/cert.p12 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+            security list-keychain -d user -s $KEYCHAIN_PATH $(security list-keychains -d user | tr -d '"')
+            security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+            # 安装描述文件
+            mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+            echo "$PROVISION_PROFILE_BASE64" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+
+            # Archive
+            xcodebuild archive \
+              -project LongShot.xcodeproj \
+              -scheme LongShot \
+              -configuration Release \
+              -archivePath build/LongShot.xcarchive \
+              -destination 'generic/platform=iOS'
+
+            # 导出带签名的 IPA
+            cat <<EOF > exportOptions.plist
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            <plist version="1.0">
+            <dict>
+                <key>method</key>
+                <string>development</string>
+                <key>signingStyle</key>
+                <string>automatic</string>
+            </dict>
+            </plist>
+          EOF
+            xcodebuild -exportArchive \
+              -archivePath build/LongShot.xcarchive \
+              -exportOptionsPlist exportOptions.plist \
+              -exportPath build/output
+            cp build/output/*.ipa LongShot-Release.ipa
+          else
+            echo "==> 未配置签名证书，执行免签（Sideload / AltStore / TrollStore 适配）Release 归档与 IPA 封装..."
+            
+            xcodebuild archive \
+              -project LongShot.xcodeproj \
+              -scheme LongShot \
+              -configuration Release \
+              -archivePath build/LongShot.xcarchive \
+              -destination 'generic/platform=iOS' \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGN_IDENTITY=""
+
+            # 封装为标准 IPA 结构
+            mkdir -p Payload
+            cp -r build/LongShot.xcarchive/Products/Applications/LongShot.app Payload/
+            zip -r -q LongShot-Release.ipa Payload
+            rm -rf Payload
+          fi
+
+          # 计算 SHA256 校验和
+          shasum -a 256 LongShot-Release.ipa > LongShot-Release.ipa.sha256
+          echo "IPA 构建完成，SHA256: $(cat LongShot-Release.ipa.sha256)"
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LongShot-Release-IPA
+          path: |
+            LongShot-Release.ipa
+            LongShot-Release.ipa.sha256
+          retention-days: 14
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.create_release == true)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('v{0}-{1}', inputs.app_version, github.run_number) }}
+          name: LongShot Release ${{ inputs.app_version || github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            LongShot-Release.ipa
+            LongShot-Release.ipa.sha256

@@ -2,11 +2,11 @@ name: LongShot
 options:
   minimumXcodeGenVersion: 2.44.1
   deploymentTarget:
-    iOS: "27.0"
+    iOS: "17.0"
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    IPHONEOS_DEPLOYMENT_TARGET: "27.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
     TARGETED_DEVICE_FAMILY: "1"
     SUPPORTS_MACCATALYST: false
     PRODUCT_BUNDLE_IDENTIFIER: com.example.LongShot
