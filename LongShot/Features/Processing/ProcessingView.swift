@@ -1,16 +1,16 @@
 import SwiftUI
 
-public struct ProcessingView: View {
-    public let sessionURL: URL
+struct ProcessingView: View {
+    let sessionURL: URL
     @Environment(\.dismiss) private var dismiss
     @StateObject private var coordinator = ProcessingCoordinator()
     @State private var isShowingEditor: Bool = false
 
-    public init(sessionURL: URL) {
+    init(sessionURL: URL) {
         self.sessionURL = sessionURL
     }
 
-    public var body: some View {
+    var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
                 // 顶部状态提示

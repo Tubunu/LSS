@@ -1,16 +1,16 @@
 import SwiftUI
 
-public struct OversizeDecisionSheet: View {
-    public let rawHeight: Int
-    public let onSelect: (TileRenderer.OversizeStrategy) -> Void
+struct OversizeDecisionSheet: View {
+    let rawHeight: Int
+    let onSelect: (TileRenderer.OversizeStrategy) -> Void
     @Environment(\.dismiss) private var dismiss
 
-    public init(rawHeight: Int, onSelect: @escaping (TileRenderer.OversizeStrategy) -> Void) {
+    init(rawHeight: Int, onSelect: @escaping (TileRenderer.OversizeStrategy) -> Void) {
         self.rawHeight = rawHeight
         self.onSelect = onSelect
     }
 
-    public var body: some View {
+    var body: some View {
         VStack(spacing: 20) {
             Image(systemName: "photo.stack.fill")
                 .font(.system(size: 44))

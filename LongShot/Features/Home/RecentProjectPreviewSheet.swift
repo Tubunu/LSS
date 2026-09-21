@@ -1,18 +1,18 @@
 import SwiftUI
 
-public struct RecentProjectPreviewSheet: View {
-    public let project: RecentProject
+struct RecentProjectPreviewSheet: View {
+    let project: RecentProject
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var store = RecentProjectsStore.shared
     @State private var toastMessage: String?
     @State private var isCopied = false
     @State private var isSaved = false
 
-    public init(project: RecentProject) {
+    init(project: RecentProject) {
         self.project = project
     }
 
-    public var body: some View {
+    var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
                 // 缩略图展示

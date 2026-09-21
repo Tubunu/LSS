@@ -35,16 +35,9 @@ jobs:
       - name: Select Xcode
         run: |
           echo "Available Xcode versions:"
-          ls -d /Applications/Xcode*
-          # 优先选择最新 Xcode 16，若没有则使用系统默认 Xcode
-          if [ -d "/Applications/Xcode_16.app" ]; then
-            sudo xcode-select -s /Applications/Xcode_16.app
-          elif [ -d "/Applications/Xcode_16.1.app" ]; then
-            sudo xcode-select -s /Applications/Xcode_16.1.app
-          elif [ -d "/Applications/Xcode.app" ]; then
-            sudo xcode-select -s /Applications/Xcode.app
-          fi
+          ls -d /Applications/Xcode* || true
           xcodebuild -version
+          xcodebuild -showsdks
 
       - name: Install Tools
         run: |
@@ -99,7 +92,8 @@ jobs:
               -scheme LongShot \
               -configuration Release \
               -archivePath build/LongShot.xcarchive \
-              -destination 'generic/platform=iOS'
+              -destination 'generic/platform=iOS' \
+              2>&1 | tee build.log
 
             # 导出带签名的 IPA
             cat <<EOF > exportOptions.plist
@@ -122,15 +116,26 @@ jobs:
           else
             echo "==> 未配置签名证书，执行免签（Sideload / AltStore / TrollStore 适配）Release 归档与 IPA 封装..."
             
+            set -o pipefail
             xcodebuild archive \
               -project LongShot.xcodeproj \
               -scheme LongShot \
               -configuration Release \
               -archivePath build/LongShot.xcarchive \
               -destination 'generic/platform=iOS' \
+              CODE_SIGN_STYLE=Manual \
               CODE_SIGNING_ALLOWED=NO \
               CODE_SIGNING_REQUIRED=NO \
-              CODE_SIGN_IDENTITY=""
+              CODE_SIGN_IDENTITY="" \
+              DEVELOPMENT_TEAM="" \
+              2>&1 | tee build.log
+
+            # 检查归档产物
+            if [ ! -d "build/LongShot.xcarchive/Products/Applications/LongShot.app" ]; then
+              echo "::error::未在归档中找到 LongShot.app，构建失败！最近 60 行日志："
+              tail -n 60 build.log
+              exit 1
+            fi
 
             # 封装为标准 IPA 结构
             mkdir -p Payload
@@ -143,7 +148,17 @@ jobs:
           shasum -a 256 LongShot-Release.ipa > LongShot-Release.ipa.sha256
           echo "IPA 构建完成，SHA256: $(cat LongShot-Release.ipa.sha256)"
 
+      - name: Upload Build Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Build-Logs
+          path: build.log
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Upload IPA Artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: LongShot-Release-IPA

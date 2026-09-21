@@ -2,13 +2,13 @@ import CoreGraphics
 import PhotosUI
 import SwiftUI
 
-public struct ImportedScreenshot: Identifiable {
-    public let id = UUID()
-    public let image: CGImage
-    public let uiImage: UIImage
+struct ImportedScreenshot: Identifiable {
+    let id = UUID()
+    let image: CGImage
+    let uiImage: UIImage
 }
 
-public struct ImportView: View {
+struct ImportView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedPickerItems: [PhotosPickerItem] = []
     @State private var importedScreenshots: [ImportedScreenshot] = []
@@ -17,9 +17,9 @@ public struct ImportView: View {
     @State private var isShowingProcessing: Bool = false
     @State private var errorMessage: String?
 
-    public init() {}
+    init() {}
 
-    public var body: some View {
+    var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
                 if importedScreenshots.isEmpty {

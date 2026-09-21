@@ -1,12 +1,12 @@
 import Foundation
 
-public struct RecoverableSession: Identifiable, Sendable {
-    public let id: UUID
-    public let directory: URL
-    public let frameCount: Int
-    public let createdAt: Date
+struct RecoverableSession: Identifiable, Sendable {
+    let id: UUID
+    let directory: URL
+    let frameCount: Int
+    let createdAt: Date
 
-    public init(id: UUID, directory: URL, frameCount: Int, createdAt: Date) {
+    init(id: UUID, directory: URL, frameCount: Int, createdAt: Date) {
         self.id = id
         self.directory = directory
         self.frameCount = frameCount
@@ -14,9 +14,9 @@ public struct RecoverableSession: Identifiable, Sendable {
     }
 }
 
-public struct SessionRecovery: Sendable {
+struct SessionRecovery: Sendable {
     /// 检查是否存在未完成但保留了关键帧的会话（例如异常退出或崩溃）
-    public static func findRecoverableSession() -> RecoverableSession? {
+    static func findRecoverableSession() -> RecoverableSession? {
         let fileManager = FileManager.default
         guard let caches = try? fileManager.url(
             for: .cachesDirectory,
@@ -59,7 +59,7 @@ public struct SessionRecovery: Sendable {
     }
 
     /// 用户选择放弃未完成会话，物理清除临时目录
-    public static func discard(session: RecoverableSession) {
+    static func discard(session: RecoverableSession) {
         Task.detached(priority: .background) {
             try? FileManager.default.removeItem(at: session.directory)
         }

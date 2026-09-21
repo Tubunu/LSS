@@ -1,7 +1,7 @@
 import SwiftUI
 
-public struct EditorView: View {
-    public let baseImage: CGImage
+struct EditorView: View {
+    let baseImage: CGImage
     @Environment(\.dismiss) private var dismiss
 
     @State private var strokes: [MosaicStroke] = []
@@ -13,11 +13,11 @@ public struct EditorView: View {
 
     private let renderer = MosaicRenderer()
 
-    public init(baseImage: CGImage) {
+    init(baseImage: CGImage) {
         self.baseImage = baseImage
     }
 
-    public var body: some View {
+    var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 // 编辑区域

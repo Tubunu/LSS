@@ -1,24 +1,24 @@
 import SwiftUI
 
-public struct SeamAdjustmentItem: Identifiable, Sendable {
-    public let id: Int // segment index
-    public var offsetDelta: Int
-    public var isExcluded: Bool
+struct SeamAdjustmentItem: Identifiable, Sendable {
+    let id: Int // segment index
+    var offsetDelta: Int
+    var isExcluded: Bool
 
-    public init(id: Int, offsetDelta: Int = 0, isExcluded: Bool = false) {
+    init(id: Int, offsetDelta: Int = 0, isExcluded: Bool = false) {
         self.id = id
         self.offsetDelta = offsetDelta
         self.isExcluded = isExcluded
     }
 }
 
-public struct SeamAdjusterView: View {
-    public let segmentCount: Int
-    @Binding public var adjustments: [SeamAdjustmentItem]
+struct SeamAdjusterView: View {
+    let segmentCount: Int
+    @Binding var adjustments: [SeamAdjustmentItem]
     @Environment(\.dismiss) private var dismiss
-    public let onApply: () -> Void
+    let onApply: () -> Void
 
-    public init(
+    init(
         segmentCount: Int,
         adjustments: Binding<[SeamAdjustmentItem]>,
         onApply: @escaping () -> Void
@@ -28,7 +28,7 @@ public struct SeamAdjusterView: View {
         self.onApply = onApply
     }
 
-    public var body: some View {
+    var body: some View {
         NavigationStack {
             List {
                 Section {

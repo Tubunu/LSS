@@ -1,8 +1,8 @@
 import Foundation
 
-public actor SessionGarbageCollector {
+actor SessionGarbageCollector {
     /// 拼接成功后立即清理原始关键帧 PNG，释放数百 MB 存储
-    public static func purgeKeyframes(in sessionDirectory: URL) {
+    static func purgeKeyframes(in sessionDirectory: URL) {
         Task.detached(priority: .background) {
             let fileManager = FileManager.default
             guard let files = try? fileManager.contentsOfDirectory(
@@ -18,7 +18,7 @@ public actor SessionGarbageCollector {
     }
 
     /// 启动时清理超过 24 小时的孤儿临时目录
-    public static func cleanupStaleSessions() {
+    static func cleanupStaleSessions() {
         Task.detached(priority: .background) {
             let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("LongShot")
             let cutoff = Date().addingTimeInterval(-86400)

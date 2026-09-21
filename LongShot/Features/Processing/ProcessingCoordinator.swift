@@ -4,8 +4,8 @@ import ImageIO
 import SwiftUI
 
 @MainActor
-public final class ProcessingCoordinator: ObservableObject {
-    public enum Phase: Equatable {
+final class ProcessingCoordinator: ObservableObject {
+    enum Phase: Equatable {
         case idle
         case loadingFrames
         case analyzing
@@ -15,7 +15,7 @@ public final class ProcessingCoordinator: ObservableObject {
         case completed
         case failed(String)
 
-        public var title: String {
+        var title: String {
             switch self {
             case .idle: "准备中"
             case .loadingFrames: "正在加载关键帧..."
@@ -29,15 +29,15 @@ public final class ProcessingCoordinator: ObservableObject {
         }
     }
 
-    @Published public private(set) var phase: Phase = .idle
-    @Published public private(set) var progress: Double = 0.0
-    @Published public private(set) var resultImage: CGImage?
-    @Published public private(set) var resultSlices: [TileRenderer.SlicedImage] = []
-    @Published public var showsOversizeSheet: Bool = false
-    @Published public var oversizeHeight: Int = 0
-    @Published public var toastMessage: String?
-    @Published public var isSavedToPhotos: Bool = false
-    @Published public var isCopiedToClipboard: Bool = false
+    @Published private(set) var phase: Phase = .idle
+    @Published private(set) var progress: Double = 0.0
+    @Published private(set) var resultImage: CGImage?
+    @Published private(set) var resultSlices: [TileRenderer.SlicedImage] = []
+    @Published var showsOversizeSheet: Bool = false
+    @Published var oversizeHeight: Int = 0
+    @Published var toastMessage: String?
+    @Published var isSavedToPhotos: Bool = false
+    @Published var isCopiedToClipboard: Bool = false
 
     private var loadedImages: [CGImage] = []
     private var stitchPlan: StitchPlan?
@@ -45,9 +45,9 @@ public final class ProcessingCoordinator: ObservableObject {
     private let engine = StitchEngine()
     private let tileRenderer = TileRenderer()
 
-    public init() {}
+    init() {}
 
-    public func process(sessionURL: URL) async {
+    func process(sessionURL: URL) async {
         self.sessionURL = sessionURL
         self.phase = .loadingFrames
         self.progress = 0.1
@@ -105,7 +105,7 @@ public final class ProcessingCoordinator: ObservableObject {
     }
 
     /// 用户选择策略后继续执行渲染
-    public func applyOversizeStrategy(_ strategy: TileRenderer.OversizeStrategy) async {
+    func applyOversizeStrategy(_ strategy: TileRenderer.OversizeStrategy) async {
         showsOversizeSheet = false
         await executeRender(strategy: strategy)
     }
@@ -145,7 +145,7 @@ public final class ProcessingCoordinator: ObservableObject {
     }
 
     /// 一键复制到剪贴板
-    public func copyToClipboard() {
+    func copyToClipboard() {
         guard let image = resultImage else { return }
         QuickExporter.copyToClipboard(image: image)
         self.isCopiedToClipboard = true
@@ -153,7 +153,7 @@ public final class ProcessingCoordinator: ObservableObject {
     }
 
     /// 一键存入系统相册
-    public func saveToPhotos() async {
+    func saveToPhotos() async {
         do {
             if !resultSlices.isEmpty {
                 let slices = resultSlices.map(\.image)

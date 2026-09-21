@@ -3,24 +3,24 @@ import CoreImage
 import CoreImage.CIFilterBuiltins
 import Foundation
 
-public struct MosaicStroke: Sendable, Identifiable {
-    public let id = UUID()
-    public var points: [CGPoint]
-    public var lineWidth: CGFloat
+struct MosaicStroke: Sendable, Identifiable {
+    let id = UUID()
+    var points: [CGPoint]
+    var lineWidth: CGFloat
 
-    public init(points: [CGPoint] = [], lineWidth: CGFloat = 28) {
+    init(points: [CGPoint] = [], lineWidth: CGFloat = 28) {
         self.points = points
         self.lineWidth = lineWidth
     }
 }
 
-public struct MosaicRenderer: Sendable {
+struct MosaicRenderer: @unchecked Sendable {
     private let context = CIContext(options: [.useSoftwareRenderer: false])
 
-    public init() {}
+    init() {}
 
     /// 将马赛克笔迹通过 CoreImage GPU 加速合成到原图中
-    public func applyMosaic(
+    func applyMosaic(
         to image: CGImage,
         strokes: [MosaicStroke],
         pixelScale: Float = 24.0

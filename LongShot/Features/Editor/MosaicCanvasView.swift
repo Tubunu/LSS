@@ -1,12 +1,12 @@
 import SwiftUI
 
-public struct MosaicCanvasView: View {
-    public let imageSize: CGSize
-    @Binding public var strokes: [MosaicStroke]
-    public let isPainting: Bool
+struct MosaicCanvasView: View {
+    let imageSize: CGSize
+    @Binding var strokes: [MosaicStroke]
+    let isPainting: Bool
     @State private var currentStroke: [CGPoint] = []
 
-    public init(
+    init(
         imageSize: CGSize,
         strokes: Binding<[MosaicStroke]>,
         isPainting: Bool = true
@@ -16,7 +16,7 @@ public struct MosaicCanvasView: View {
         self.isPainting = isPainting
     }
 
-    public var body: some View {
+    var body: some View {
         GeometryReader { geometry in
             let viewSize = geometry.size
             let scaleX = imageSize.width > 0 ? imageSize.width / viewSize.width : 1

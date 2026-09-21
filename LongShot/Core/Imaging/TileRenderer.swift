@@ -2,29 +2,29 @@ import CoreGraphics
 import Foundation
 import ImageIO
 
-public struct TileRenderer: Sendable {
-    public static let maxSafeDimension = 25000
-    public static let defaultMaxSliceHeight = 20000
+struct TileRenderer: Sendable {
+    static let maxSafeDimension = 25000
+    static let defaultMaxSliceHeight = 20000
 
-    public enum OversizeStrategy: Sendable, Equatable {
+    enum OversizeStrategy: Sendable, Equatable {
         case downsample(scale: CGFloat)
         case slice(maxSliceHeight: Int)
     }
 
-    public struct SlicedImage: Sendable {
-        public let index: Int
-        public let total: Int
-        public let image: CGImage
+    struct SlicedImage: Sendable {
+        let index: Int
+        let total: Int
+        let image: CGImage
     }
 
     private let thresholds: StitchThresholds
 
-    public init(thresholds: StitchThresholds = .init()) {
+    init(thresholds: StitchThresholds = .init()) {
         self.thresholds = thresholds
     }
 
     /// 单图渲染：按需单帧解码，内存峰值极低
-    public func render(
+    func render(
         plan: StitchPlan,
         images: [CGImage],
         scale: CGFloat = 1.0
@@ -84,7 +84,7 @@ public struct TileRenderer: Sendable {
     }
 
     /// 智能分页/切片渲染：在自然 seam 接缝处切分，每段高度不超过 maxSliceHeight
-    public func renderSlices(
+    func renderSlices(
         plan: StitchPlan,
         images: [CGImage],
         maxSliceHeight: Int = defaultMaxSliceHeight

@@ -3,15 +3,15 @@ import Foundation
 import ImageIO
 import SwiftUI
 
-public struct RecentProject: Codable, Identifiable, Sendable {
-    public let id: UUID
-    public let createdAt: Date
-    public let width: Int
-    public let height: Int
-    public let sliceCount: Int
-    public let thumbnailFileName: String
+struct RecentProject: Codable, Identifiable, Sendable {
+    let id: UUID
+    let createdAt: Date
+    let width: Int
+    let height: Int
+    let sliceCount: Int
+    let thumbnailFileName: String
 
-    public init(
+    init(
         id: UUID = UUID(),
         createdAt: Date = Date(),
         width: Int,
@@ -29,10 +29,10 @@ public struct RecentProject: Codable, Identifiable, Sendable {
 }
 
 @MainActor
-public final class RecentProjectsStore: ObservableObject {
-    public static let shared = RecentProjectsStore()
+final class RecentProjectsStore: ObservableObject {
+    static let shared = RecentProjectsStore()
 
-    @Published public private(set) var projects: [RecentProject] = []
+    @Published private(set) var projects: [RecentProject] = []
 
     private let maxCount = 10
     private let fileManager = FileManager.default
@@ -52,7 +52,7 @@ public final class RecentProjectsStore: ObservableObject {
     }
 
     /// 记录新生成的长截图（最多保留最近 10 条，并生成轻量缩略图）
-    public func record(image: CGImage, sliceCount: Int = 1) {
+    func record(image: CGImage, sliceCount: Int = 1) {
         let id = UUID()
         let thumbName = "\(id.uuidString).jpg"
         let thumbURL = rootDirectory.appendingPathComponent(thumbName)
@@ -83,7 +83,7 @@ public final class RecentProjectsStore: ObservableObject {
         save()
     }
 
-    public func delete(id: UUID) {
+    func delete(id: UUID) {
         if let index = projects.firstIndex(where: { $0.id == id }) {
             let removed = projects.remove(at: index)
             let oldURL = rootDirectory.appendingPathComponent(removed.thumbnailFileName)
@@ -92,7 +92,7 @@ public final class RecentProjectsStore: ObservableObject {
         }
     }
 
-    public func clearAll() {
+    func clearAll() {
         for p in projects {
             let url = rootDirectory.appendingPathComponent(p.thumbnailFileName)
             try? fileManager.removeItem(at: url)
@@ -101,7 +101,7 @@ public final class RecentProjectsStore: ObservableObject {
         save()
     }
 
-    public func thumbnailURL(for project: RecentProject) -> URL {
+    func thumbnailURL(for project: RecentProject) -> URL {
         rootDirectory.appendingPathComponent(project.thumbnailFileName)
     }
 
