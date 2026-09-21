@@ -84,6 +84,10 @@ public struct MosaicRenderer: Sendable {
         context.setFillColor(gray: 0.0, alpha: 1.0)
         context.fill(CGRect(x: 0, y: 0, width: width, height: height))
 
+        // 翻转坐标系，使 (0, 0) 与 SwiftUI / UIKit 保持一致（原点在左上角）
+        context.translateBy(x: 0, y: CGFloat(height))
+        context.scaleBy(x: 1.0, y: -1.0)
+
         // 纯白画笔绘制笔迹
         context.setStrokeColor(gray: 1.0, alpha: 1.0)
         context.setLineCap(.round)

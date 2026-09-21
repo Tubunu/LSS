@@ -86,16 +86,17 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
     }
 
     func appDidBecomeActive() {
-        guard let backgroundStartedAt, let backgroundStartFrameCount else { return }
-        let snapshot = captureDiagnostics.snapshot()
-        captureDiagnostics.recordBackgroundResult(
-            frameDelta: snapshot.validFrames - backgroundStartFrameCount,
-            duration: Date().timeIntervalSince(backgroundStartedAt)
-        )
-        diagnostics = captureDiagnostics.snapshot()
-        self.backgroundStartedAt = nil
-        self.backgroundStartFrameCount = nil
-        writeDiagnostics(state: state)
+        if let backgroundStartedAt, let backgroundStartFrameCount {
+            let snapshot = captureDiagnostics.snapshot()
+            captureDiagnostics.recordBackgroundResult(
+                frameDelta: snapshot.validFrames - backgroundStartFrameCount,
+                duration: Date().timeIntervalSince(backgroundStartedAt)
+            )
+            diagnostics = captureDiagnostics.snapshot()
+            self.backgroundStartedAt = nil
+            self.backgroundStartFrameCount = nil
+            writeDiagnostics(state: state)
+        }
 
         if autoStopOnForeground && state == .capturing && diagnostics.selectedFrames >= 2 {
             stopCapture()

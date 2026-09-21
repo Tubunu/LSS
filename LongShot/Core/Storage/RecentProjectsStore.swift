@@ -137,6 +137,8 @@ public final class RecentProjectsStore: ObservableObject {
         ) else { return nil }
 
         context.interpolationQuality = .medium
+        context.translateBy(x: 0, y: CGFloat(thumbHeight))
+        context.scaleBy(x: 1.0, y: -1.0)
         context.draw(image, in: CGRect(x: 0, y: 0, width: thumbWidth, height: thumbHeight))
         guard let thumbImage = context.makeImage() else { return nil }
 

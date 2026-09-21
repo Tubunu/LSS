@@ -218,6 +218,8 @@ public struct TileRenderer: Sendable {
             throw StitchError.contextCreationFailed
         }
         context.interpolationQuality = .high
+        context.translateBy(x: 0, y: CGFloat(targetHeight))
+        context.scaleBy(x: 1.0, y: -1.0)
         context.draw(image, in: CGRect(x: 0, y: 0, width: targetWidth, height: targetHeight))
         guard let scaled = context.makeImage() else {
             throw StitchError.contextCreationFailed
