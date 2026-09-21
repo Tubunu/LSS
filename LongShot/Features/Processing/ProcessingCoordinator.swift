@@ -130,6 +130,10 @@ final class ProcessingCoordinator: ObservableObject {
             self.progress = 1.0
             self.phase = .completed
 
+            if plan.warnings.contains(where: { $0.kind == .lowConfidence }) {
+                self.toastMessage = "长截图已生成！个别接缝若有轻微错位可使用接缝微调。"
+            }
+
             // 记录到最近项目（仅保留轻量缩略图）
             if let img = self.resultImage {
                 RecentProjectsStore.shared.record(image: img, sliceCount: self.resultSlices.isEmpty ? 1 : self.resultSlices.count)

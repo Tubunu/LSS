@@ -70,7 +70,7 @@ enum StitchWarningKind: String, Codable, Sendable {
     case rollbackRecovered
 
     var isBlocking: Bool {
-        self != .rollbackRecovered
+        self == .incompatibleFrames
     }
 }
 
@@ -107,7 +107,13 @@ struct StitchPlan: Codable, Equatable, Sendable {
     var warnings: [StitchWarning]
 
     var isRenderable: Bool {
-        !warnings.contains { $0.kind.isBlocking }
+        guard !segments.isEmpty else { return false }
+        if warnings.contains(where: { $0.kind == .incompatibleFrames }) {
+            return false
+        }
+        // 若全部接缝均严重低置信度（如两张完全无关图），判定为不可渲染
+        let hasUsableSegment = segments.contains { $0.confidence >= 0.50 }
+        return hasUsableSegment
     }
 }
 

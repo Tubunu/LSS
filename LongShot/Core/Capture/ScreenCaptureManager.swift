@@ -69,6 +69,7 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
 
     func stopCapture() {
         guard state.canStop, let session else { return }
+        session.setSamplingActive(false)
         state = .stopping
         isIntentionalStop = true
         endBackgroundTaskIfNeeded()
@@ -90,6 +91,7 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
 
     func reset() {
         guard !state.isBusy else { return }
+        session?.setSamplingActive(false)
         endBackgroundTaskIfNeeded()
         state = .idle
         diagnostics = .init()
@@ -102,6 +104,9 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
         backgroundStartedAt = Date()
         backgroundStartFrameCount = captureDiagnostics.snapshot().validFrames
 
+        // 切入后台（进入目标 App），激活关键帧采样
+        session?.setSamplingActive(true)
+
         // 申请系统后台执行时间片，双重保障在切出 LongShot 期间进程不被系统挂起
         if backgroundTaskIdentifier == .invalid {
             backgroundTaskIdentifier = UIApplication.shared.beginBackgroundTask(withName: "LongShot.ScreenCapture") { [weak self] in
@@ -112,6 +117,8 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
 
     func appDidBecomeActive() {
         endBackgroundTaskIfNeeded()
+        // 切回 LongShot 前台，立即暂停关键帧采样，避免 LongShot 界面与多任务动画污染帧序列
+        session?.setSamplingActive(false)
 
         guard let backgroundStartedAt, let backgroundStartFrameCount else {
             // 如果从未切入过后台（如刚在 App 内完成选择器确认并关闭浮层），绝对不能触发停止
@@ -173,6 +180,8 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
                     guard session === newSession else { return }
                     captureStartedAt = Date()
                     state = .capturing
+                    // 在 LongShot 前台等待期间保持静默，切出到目标 App 后再激活采样
+                    newSession.setSamplingActive(false)
                     writeDiagnostics(state: state)
                 } catch {
                     session = nil

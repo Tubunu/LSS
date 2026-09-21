@@ -7,6 +7,7 @@ final class StreamOutputHandler: NSObject, SCStreamOutput, @unchecked Sendable {
     private let diagnostics: CaptureDiagnostics
     private let sampler: FrameSampler
     private let snapshotHandler: SnapshotHandler
+    var isSamplingActive: Bool = false
 
     init(
         diagnostics: CaptureDiagnostics,
@@ -39,7 +40,7 @@ final class StreamOutputHandler: NSObject, SCStreamOutput, @unchecked Sendable {
             height: CVPixelBufferGetHeight(pixelBuffer),
             timestamp: timestamp
         )
-        if sampler.consider(pixelBuffer: pixelBuffer, timestamp: timestamp) {
+        if isSamplingActive && sampler.consider(pixelBuffer: pixelBuffer, timestamp: timestamp) {
             diagnostics.recordSelectedFrame()
         }
         if shouldPublish {

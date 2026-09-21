@@ -40,7 +40,12 @@ final class ScreenCaptureSession: NSObject, SCStreamDelegate, @unchecked Sendabl
     }
 
     func stop() async throws {
+        setSamplingActive(false)
         try await stream.stopCapture()
+    }
+
+    func setSamplingActive(_ active: Bool) {
+        outputHandler.isSamplingActive = active
     }
 
     func stream(_: SCStream, didStopWithError error: any Error) {

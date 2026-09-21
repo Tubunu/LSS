@@ -44,6 +44,19 @@ final class StitchEngineTests: XCTestCase {
         }
     }
 
+    func testLeadInTransitionFrameIsTrimmed() throws {
+        let fixture = try loadFixture(name: "simple_article")
+        let sourceFrames = makeFrames(fixture: fixture)
+        // 模拟第 0 帧为无关过渡帧（使用完全不同的 seed 生成不匹配帧）
+        let unrelatedLeadIn = makeFrame(fixture: fixture, index: 999, offset: 0, seed: 999)
+        let framesWithLeadIn = [unrelatedLeadIn] + sourceFrames
+
+        let plan = try StitchEngine().makePlan(frames: framesWithLeadIn)
+        XCTAssertTrue(plan.isRenderable)
+        XCTAssertTrue(plan.skippedFrameIndices.contains(999), "第 0 帧无关前导帧应被自动跳过")
+        XCTAssertEqual(plan.placements.first?.frameIndex, sourceFrames.first?.index)
+    }
+
     func testFrameAnalyzerPlanAndRendererEndToEnd() throws {
         let fixture = try loadFixture(name: "simple_article")
         let sourceFrames = makeFrames(fixture: fixture)

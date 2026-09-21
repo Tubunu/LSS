@@ -25,21 +25,63 @@ struct StitchEngine: Sendable {
         }
 
         let fixedRegions = try fixedRegionDetector.detect(frames: frames)
-        var placements = [FramePlacement(frameIndex: first.index, offsetY: 0)]
-        var segments = [StitchSegment]()
         var skippedFrameIndices = [Int]()
         var warnings = [StitchWarning]()
-        var outputOffset = 0
-        var upper = first
 
-        for candidateIndex in 1 ..< frames.count {
+        // 1. 前导无关帧智能寻优：
+        // 若首帧与第 1 帧完全不匹配，但第 1 帧与第 2 帧匹配良好，说明第 0 帧为无关前导过渡帧，自动跳过
+        var startIndex = 0
+        if frames.count >= 3 {
+            let maxLeadInCheck = min(2, frames.count - 2)
+            while startIndex < maxLeadInCheck {
+                let testMatch = try overlapDetector.detect(
+                    upper: frames[startIndex],
+                    lower: frames[startIndex + 1],
+                    excluding: fixedRegions
+                )
+                if testMatch.confidence >= thresholds.minimumConfidence {
+                    break // 首对匹配良好，无需跳帧
+                }
+
+                // 检查下一对是否匹配良好
+                let nextPairMatch = try overlapDetector.detect(
+                    upper: frames[startIndex + 1],
+                    lower: frames[startIndex + 2],
+                    excluding: fixedRegions
+                )
+                if nextPairMatch.confidence >= thresholds.minimumConfidence {
+                    skippedFrameIndices.append(frames[startIndex].index)
+                    warnings.append(
+                        StitchWarning(
+                            kind: .rollbackRecovered,
+                            pairIndex: startIndex,
+                            message: "第 \(startIndex + 1) 张截图为过渡前导帧，已自动跳过"
+                        )
+                    )
+                    startIndex += 1
+                } else {
+                    break
+                }
+            }
+        }
+
+        let effectiveFirst = frames[startIndex]
+        var placements = [FramePlacement(frameIndex: effectiveFirst.index, offsetY: 0)]
+        var segments = [StitchSegment]()
+        var outputOffset = 0
+        var upper = effectiveFirst
+
+        var candidateIndex = startIndex + 1
+        while candidateIndex < frames.count {
             let lower = frames[candidateIndex]
             let match = try overlapDetector.detect(
                 upper: upper,
                 lower: lower,
                 excluding: fixedRegions
             )
+
             if match.confidence < thresholds.minimumConfidence {
+                // A. 尝试反向回滚检测
                 let reverse = try overlapDetector.detect(
                     upper: lower,
                     lower: upper,
@@ -59,7 +101,59 @@ struct StitchEngine: Sendable {
                             message: "第 \(candidateIndex + 1) 张截图为小幅回滚帧，已跳过"
                         )
                     )
+                    candidateIndex += 1
                     continue
+                }
+
+                // B. 前瞻单帧跳跃探测 (Lookahead 1)
+                if candidateIndex + 1 < frames.count {
+                    let nextLower = frames[candidateIndex + 1]
+                    let lookaheadMatch = try overlapDetector.detect(
+                        upper: upper,
+                        lower: nextLower,
+                        excluding: fixedRegions
+                    )
+                    if lookaheadMatch.confidence >= thresholds.minimumConfidence {
+                        skippedFrameIndices.append(lower.index)
+                        warnings.append(
+                            StitchWarning(
+                                kind: .rollbackRecovered,
+                                pairIndex: candidateIndex - 1,
+                                message: "第 \(candidateIndex + 1) 张截图为瞬态跳帧，已跳过"
+                            )
+                        )
+                        outputOffset += lookaheadMatch.offset
+                        placements.append(FramePlacement(frameIndex: nextLower.index, offsetY: outputOffset))
+                        segments.append(
+                            StitchSegment(
+                                upperFrameIndex: upper.index,
+                                lowerFrameIndex: nextLower.index,
+                                offset: lookaheadMatch.offset,
+                                overlap: lookaheadMatch.overlap,
+                                confidence: lookaheadMatch.confidence,
+                                seam: lookaheadMatch.seam,
+                                fixedRegions: fixedRegions,
+                                warning: nil,
+                                debugCandidates: lookaheadMatch.candidates
+                            )
+                        )
+                        upper = nextLower
+                        candidateIndex += 2
+                        continue
+                    }
+                }
+
+                // C. 尾部孤立无关帧修剪：若已有有效段且当前已是最后一帧，直接忽略尾部垃圾帧
+                if candidateIndex == frames.count - 1, !segments.isEmpty {
+                    skippedFrameIndices.append(lower.index)
+                    warnings.append(
+                        StitchWarning(
+                            kind: .rollbackRecovered,
+                            pairIndex: candidateIndex - 1,
+                            message: "尾部第 \(candidateIndex + 1) 张截图为切换过渡帧，已自动修剪"
+                        )
+                    )
+                    break
                 }
             }
 
@@ -92,6 +186,7 @@ struct StitchEngine: Sendable {
                 )
             )
             upper = lower
+            candidateIndex += 1
         }
 
         return StitchPlan(
