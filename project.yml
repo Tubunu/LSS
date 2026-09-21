@@ -2,11 +2,11 @@ name: LongShot
 options:
   minimumXcodeGenVersion: 2.44.1
   deploymentTarget:
-    iOS: "27.0"
+    iOS: "18.0"
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    IPHONEOS_DEPLOYMENT_TARGET: "27.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "18.0"
     TARGETED_DEVICE_FAMILY: "1"
     SUPPORTS_MACCATALYST: false
     PRODUCT_BUNDLE_IDENTIFIER: com.example.LongShot
@@ -16,6 +16,9 @@ settings:
     CODE_SIGNING_ALLOWED: NO
     CODE_SIGNING_REQUIRED: NO
     CODE_SIGN_IDENTITY: ""
+    FRAMEWORK_SEARCH_PATHS:
+      - "$(SRCROOT)/Frameworks"
+      - "$(inherited)"
 targets:
   LongShot:
     type: application
@@ -47,8 +50,17 @@ targets:
         CODE_SIGNING_ALLOWED: NO
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGN_IDENTITY: ""
+        FRAMEWORK_SEARCH_PATHS:
+          - "$(SRCROOT)/Frameworks"
+          - "$(inherited)"
+        OTHER_LDFLAGS:
+          - "$(inherited)"
+          - "-weak_framework"
+          - "ScreenCaptureKit"
     dependencies:
-      - sdk: ScreenCaptureKit.framework
+      - framework: Frameworks/ScreenCaptureKit.framework
+        embed: false
+        link: true
       - sdk: CoreImage.framework
       - sdk: ImageIO.framework
       - sdk: Photos.framework
@@ -73,3 +85,10 @@ targets:
         CODE_SIGNING_ALLOWED: NO
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGN_IDENTITY: ""
+        FRAMEWORK_SEARCH_PATHS:
+          - "$(SRCROOT)/Frameworks"
+          - "$(inherited)"
+        OTHER_LDFLAGS:
+          - "$(inherited)"
+          - "-weak_framework"
+          - "ScreenCaptureKit"

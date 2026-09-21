@@ -1,0 +1,4 @@
+﻿framework module ScreenCaptureKit {
+    header "ScreenCaptureKit.h"
+    export *
+}
