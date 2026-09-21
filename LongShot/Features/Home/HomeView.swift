@@ -43,13 +43,13 @@ struct HomeView: View {
                         .accessibilityIdentifier("startScrollingCapture")
                     }
 
-                    Button {} label: {
+                    NavigationLink {
+                        ImportView()
+                    } label: {
                         Label("导入截图拼接", systemImage: "photo.on.rectangle.angled")
-                            .frame(maxWidth: .infinity)
+                            .frame(maxWidth: .infinity, minHeight: 44)
                     }
-                    .buttonStyle(.borderless)
-                    .disabled(true)
-                    .accessibilityHint("将在后续阶段开放")
+                    .buttonStyle(.bordered)
 
                     VStack(alignment: .leading, spacing: 14) {
                         Text("最近项目")

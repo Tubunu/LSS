@@ -4,6 +4,7 @@ public struct ProcessingView: View {
     public let sessionURL: URL
     @Environment(\.dismiss) private var dismiss
     @StateObject private var coordinator = ProcessingCoordinator()
+    @State private var isShowingEditor: Bool = false
 
     public init(sessionURL: URL) {
         self.sessionURL = sessionURL
@@ -82,6 +83,11 @@ public struct ProcessingView: View {
                     }
                 }
             }
+            .sheet(isPresented: $isShowingEditor) {
+                if let img = coordinator.resultImage {
+                    EditorView(baseImage: img)
+                }
+            }
             .overlay(alignment: .top) {
                 if let toast = coordinator.toastMessage {
                     Text(toast)
@@ -107,12 +113,21 @@ public struct ProcessingView: View {
     }
 
     private var actionBar: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
+            Button {
+                isShowingEditor = true
+            } label: {
+                Label("打码", systemImage: "paintbrush.pointed")
+                    .frame(minHeight: 48)
+            }
+            .buttonStyle(.bordered)
+            .tint(.orange)
+
             Button {
                 coordinator.copyToClipboard()
             } label: {
                 Label(
-                    coordinator.isCopiedToClipboard ? "已复制" : "复制到剪贴板",
+                    coordinator.isCopiedToClipboard ? "已复制" : "复制",
                     systemImage: coordinator.isCopiedToClipboard ? "checkmark" : "doc.on.doc"
                 )
                 .frame(maxWidth: .infinity, minHeight: 48)
@@ -126,7 +141,7 @@ public struct ProcessingView: View {
                 }
             } label: {
                 Label(
-                    coordinator.isSavedToPhotos ? "已存相册" : "保存到相册",
+                    coordinator.isSavedToPhotos ? "已存相册" : "存相册",
                     systemImage: coordinator.isSavedToPhotos ? "checkmark" : "square.and.arrow.down"
                 )
                 .frame(maxWidth: .infinity, minHeight: 48)
