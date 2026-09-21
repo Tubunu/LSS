@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @ObservedObject var captureManager: ScreenCaptureManager
+    @State private var isShowingProcessing = false
 
     var body: some View {
         NavigationStack {
@@ -14,15 +15,33 @@ struct HomeView: View {
                     .font(.largeTitle.bold())
                     .accessibilityElement(children: .combine)
 
-                    NavigationLink {
-                        CaptureView(manager: captureManager)
-                    } label: {
-                        Label("开始滚动截图", systemImage: "rectangle.inset.filled.and.person.filled")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity, minHeight: 64)
+                    if captureManager.state == .completed, let dir = captureManager.sessionDirectory {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Label("捕获已完成，可生成长图", systemImage: "sparkles")
+                                .font(.headline)
+                                .foregroundStyle(.blue)
+                            Button {
+                                isShowingProcessing = true
+                            } label: {
+                                Label("立即生成长截图", systemImage: "rectangle.compress.vertical")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity, minHeight: 56)
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                        .padding()
+                        .background(Color.blue.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+                    } else {
+                        NavigationLink {
+                            CaptureView(manager: captureManager)
+                        } label: {
+                            Label("开始滚动截图", systemImage: "rectangle.inset.filled.and.person.filled")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity, minHeight: 64)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier("startScrollingCapture")
                     }
-                    .buttonStyle(.borderedProminent)
-                    .accessibilityIdentifier("startScrollingCapture")
 
                     Button {} label: {
                         Label("导入截图拼接", systemImage: "photo.on.rectangle.angled")
@@ -46,6 +65,11 @@ struct HomeView: View {
                 .padding(24)
             }
             .navigationTitle("LongShot")
+            .sheet(isPresented: $isShowingProcessing) {
+                if let dir = captureManager.sessionDirectory {
+                    ProcessingView(sessionURL: dir)
+                }
+            }
         }
     }
 }

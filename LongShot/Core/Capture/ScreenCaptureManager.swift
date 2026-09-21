@@ -2,10 +2,13 @@
 import SwiftUI
 
 final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendable {
+    static let shared = ScreenCaptureManager()
+
     @Published private(set) var state: CaptureState = .idle
     @Published private(set) var diagnostics = CaptureDiagnosticsSnapshot()
     @Published private(set) var sessionDirectory: URL?
     @Published private(set) var captureStartedAt: Date?
+    var autoStopOnForeground: Bool = true
 
     private let picker = SCContentSharingPicker.shared
     private let captureDiagnostics = CaptureDiagnostics()
@@ -93,6 +96,10 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
         self.backgroundStartedAt = nil
         self.backgroundStartFrameCount = nil
         writeDiagnostics(state: state)
+
+        if autoStopOnForeground && state == .capturing && diagnostics.selectedFrames >= 2 {
+            stopCapture()
+        }
     }
 
     private func beginCapture(filter: SCContentFilter) {
@@ -140,7 +147,12 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
     private func handleUnexpectedStop(_ error: Error) {
         guard !isIntentionalStop else { return }
         session = nil
-        state = .failed(message: "屏幕捕获已中断：\(error.localizedDescription)")
+        let snapshot = captureDiagnostics.snapshot()
+        if snapshot.selectedFrames >= 2 {
+            state = .completed
+        } else {
+            state = .failed(message: "屏幕捕获已中断：\(error.localizedDescription)")
+        }
         writeDiagnostics(state: state)
     }
 

@@ -2,8 +2,12 @@ import SwiftUI
 
 @main
 struct LongShotApp: App {
-    @StateObject private var captureManager = ScreenCaptureManager()
+    @StateObject private var captureManager = ScreenCaptureManager.shared
     @Environment(\.scenePhase) private var scenePhase
+
+    init() {
+        SessionGarbageCollector.cleanupStaleSessions()
+    }
 
     var body: some Scene {
         WindowGroup {

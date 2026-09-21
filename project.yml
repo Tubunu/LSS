@@ -23,6 +23,7 @@ targets:
       properties:
         CFBundleDisplayName: LongShot
         NSScreenCaptureUsageDescription: "LongShot 需要读取你选择的屏幕内容，以在本机生成滚动长截图。"
+        NSPhotoLibraryAddUsageDescription: "LongShot 需要将生成的长截图保存到你的系统相册。"
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         UIBackgroundModes:
@@ -42,6 +43,7 @@ targets:
       - sdk: ScreenCaptureKit.framework
       - sdk: CoreImage.framework
       - sdk: ImageIO.framework
+      - sdk: Photos.framework
     scheme:
       gatherCoverageData: false
       testTargets:

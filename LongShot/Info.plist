@@ -22,6 +22,8 @@
 	<string>1</string>
 	<key>NSScreenCaptureUsageDescription</key>
 	<string>LongShot 需要读取你选择的屏幕内容，以在本机生成滚动长截图。</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>LongShot 需要将生成的长截图保存到你的系统相册。</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -3,6 +3,7 @@ import SwiftUI
 struct CaptureView: View {
     @ObservedObject var manager: ScreenCaptureManager
     @State private var showsGuide = false
+    @State private var showsProcessing = false
 
     var body: some View {
         List {
@@ -66,15 +67,27 @@ struct CaptureView: View {
                 .accessibilityIdentifier("stopCapture")
             }
             if manager.state == .completed {
-                Button("完成") {
+                if let dir = manager.sessionDirectory {
+                    Button("生成长截图") {
+                        showsProcessing = true
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+
+                Button("重置") {
                     manager.reset()
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.bordered)
             }
         }
         .padding()
         .frame(maxWidth: .infinity)
         .background(.bar)
+        .sheet(isPresented: $showsProcessing) {
+            if let dir = manager.sessionDirectory {
+                ProcessingView(sessionURL: dir)
+            }
+        }
     }
 
     private var stateIcon: String {
