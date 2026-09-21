@@ -130,6 +130,11 @@ public final class ProcessingCoordinator: ObservableObject {
             self.progress = 1.0
             self.phase = .completed
 
+            // 记录到最近项目（仅保留轻量缩略图）
+            if let img = self.resultImage {
+                RecentProjectsStore.shared.record(image: img, sliceCount: self.resultSlices.isEmpty ? 1 : self.resultSlices.count)
+            }
+
             // 5. 渲染成功后，即用即抛清理原始关键帧 PNG
             if let sessionURL = sessionURL {
                 SessionGarbageCollector.purgeKeyframes(in: sessionURL)
