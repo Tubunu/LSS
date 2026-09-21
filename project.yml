@@ -33,6 +33,8 @@ targets:
         NSPhotoLibraryAddUsageDescription: "LongShot 需要将生成的长截图保存到你的系统相册。"
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
+        UIBackgroundModes:
+          - screen-capture
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait

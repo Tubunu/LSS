@@ -50,4 +50,12 @@ final class ScreenCaptureManagerTests: XCTestCase {
         manager.appDidBecomeActive()
         XCTAssertEqual(manager.state, .idle)
     }
+
+    func testResetCleansUpResources() {
+        let manager = ScreenCaptureManager()
+        manager.appDidEnterBackground()
+        manager.reset()
+        XCTAssertEqual(manager.state, .idle)
+        XCTAssertNil(manager.sessionDirectory)
+    }
 }

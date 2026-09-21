@@ -1,5 +1,6 @@
 @preconcurrency import ScreenCaptureKit
 import SwiftUI
+import UIKit
 
 final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendable {
     static let shared = ScreenCaptureManager()
@@ -16,6 +17,7 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
     private var backgroundStartedAt: Date?
     private var backgroundStartFrameCount: Int?
     private var isIntentionalStop = false
+    private var backgroundTaskIdentifier: UIBackgroundTaskIdentifier = .invalid
 
     override init() {
         super.init()
@@ -69,6 +71,7 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
         guard state.canStop, let session else { return }
         state = .stopping
         isIntentionalStop = true
+        endBackgroundTaskIfNeeded()
 
         Task { @MainActor [self, session] in
             do {
@@ -87,6 +90,7 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
 
     func reset() {
         guard !state.isBusy else { return }
+        endBackgroundTaskIfNeeded()
         state = .idle
         diagnostics = .init()
         captureStartedAt = nil
@@ -97,9 +101,18 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
         guard state == .capturing else { return }
         backgroundStartedAt = Date()
         backgroundStartFrameCount = captureDiagnostics.snapshot().validFrames
+
+        // 申请系统后台执行时间片，双重保障在切出 LongShot 期间进程不被系统挂起
+        if backgroundTaskIdentifier == .invalid {
+            backgroundTaskIdentifier = UIApplication.shared.beginBackgroundTask(withName: "LongShot.ScreenCapture") { [weak self] in
+                self?.endBackgroundTaskIfNeeded()
+            }
+        }
     }
 
     func appDidBecomeActive() {
+        endBackgroundTaskIfNeeded()
+
         guard let backgroundStartedAt, let backgroundStartFrameCount else {
             // 如果从未切入过后台（如刚在 App 内完成选择器确认并关闭浮层），绝对不能触发停止
             return
@@ -120,6 +133,13 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
         // 仅当开启自动停止，且确实经历过有效后台录制（时长 >= 2.0s 且有后台帧增量 >= 2）时才自动停止
         if autoStopOnForeground && state == .capturing && duration >= 2.0 && frameDelta >= 2 {
             stopCapture()
+        }
+    }
+
+    private func endBackgroundTaskIfNeeded() {
+        if backgroundTaskIdentifier != .invalid {
+            UIApplication.shared.endBackgroundTask(backgroundTaskIdentifier)
+            backgroundTaskIdentifier = .invalid
         }
     }
 
@@ -168,11 +188,14 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
     private func handleUnexpectedStop(_ error: Error) {
         guard !isIntentionalStop else { return }
         session = nil
+        endBackgroundTaskIfNeeded()
         let snapshot = captureDiagnostics.snapshot()
+        let nsError = error as NSError
+        let errorDetail = "\(error.localizedDescription) (代码: \(nsError.code))"
         if snapshot.selectedFrames >= 2 {
             state = .completed
         } else {
-            state = .failed(message: "屏幕捕获已中断：\(error.localizedDescription)")
+            state = .failed(message: "屏幕捕获已中断：\(errorDetail)")
         }
         writeDiagnostics(state: state)
     }

@@ -172,9 +172,6 @@ jobs:
             # 清理任何可能残留的旧描述文件
             rm -f Payload/LongShot.app/embedded.mobileprovision
 
-            # 移除 UIBackgroundModes 防御性检查（避免个人免费证书因未授权后台模式导致 iOS installd 报无法验证完整性）
-            /usr/libexec/PlistBuddy -c "Delete :UIBackgroundModes" Payload/LongShot.app/Info.plist 2>/dev/null || true
-
             # 使用 codesign 进行规范的 Ad-Hoc 本地签名（补齐标准 Mach-O 代码签名段结构，确保 Sideloadly / AltStore / 牛蛙助手等自签工具可以顺利识别与重签）
             echo "==> 执行 Ad-Hoc 代码签名以补齐 Mach-O 结构..."
             codesign --force --deep --sign - "Payload/LongShot.app"
