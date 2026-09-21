@@ -8,7 +8,7 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
     @Published private(set) var diagnostics = CaptureDiagnosticsSnapshot()
     @Published private(set) var sessionDirectory: URL?
     @Published private(set) var captureStartedAt: Date?
-    var autoStopOnForeground: Bool = true
+    var autoStopOnForeground: Bool = false
 
     private let picker = SCContentSharingPicker.shared
     private let captureDiagnostics = CaptureDiagnostics()
@@ -100,19 +100,25 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
     }
 
     func appDidBecomeActive() {
-        if let backgroundStartedAt, let backgroundStartFrameCount {
-            let snapshot = captureDiagnostics.snapshot()
-            captureDiagnostics.recordBackgroundResult(
-                frameDelta: snapshot.validFrames - backgroundStartFrameCount,
-                duration: Date().timeIntervalSince(backgroundStartedAt)
-            )
-            diagnostics = captureDiagnostics.snapshot()
-            self.backgroundStartedAt = nil
-            self.backgroundStartFrameCount = nil
-            writeDiagnostics(state: state)
+        guard let backgroundStartedAt, let backgroundStartFrameCount else {
+            // 如果从未切入过后台（如刚在 App 内完成选择器确认并关闭浮层），绝对不能触发停止
+            return
         }
 
-        if autoStopOnForeground && state == .capturing && diagnostics.selectedFrames >= 2 {
+        let duration = Date().timeIntervalSince(backgroundStartedAt)
+        let snapshot = captureDiagnostics.snapshot()
+        let frameDelta = snapshot.validFrames - backgroundStartFrameCount
+        captureDiagnostics.recordBackgroundResult(
+            frameDelta: frameDelta,
+            duration: duration
+        )
+        diagnostics = captureDiagnostics.snapshot()
+        self.backgroundStartedAt = nil
+        self.backgroundStartFrameCount = nil
+        writeDiagnostics(state: state)
+
+        // 仅当开启自动停止，且确实经历过有效后台录制（时长 >= 2.0s 且有后台帧增量 >= 2）时才自动停止
+        if autoStopOnForeground && state == .capturing && duration >= 2.0 && frameDelta >= 2 {
             stopCapture()
         }
     }

@@ -8,7 +8,7 @@ final class ScreenCaptureManagerTests: XCTestCase {
         XCTAssertEqual(manager.state, .idle)
         XCTAssertNil(manager.sessionDirectory)
         XCTAssertNil(manager.captureStartedAt)
-        XCTAssertTrue(manager.autoStopOnForeground)
+        XCTAssertFalse(manager.autoStopOnForeground, "默认应为手动模式，避免误判停止")
         XCTAssertEqual(manager.diagnostics.validFrames, 0)
     }
 
@@ -35,7 +35,15 @@ final class ScreenCaptureManagerTests: XCTestCase {
         XCTAssertEqual(manager.diagnostics.selectedFrames, 0)
     }
 
-    func testBackgroundLifecycleHandling() {
+    func testPickerDismissalDoesNotTriggerPrematureStop() {
+        let manager = ScreenCaptureManager()
+        // 模拟用户刚在 App 内完成选择器，但从未切出到后台
+        // 浮层关闭使得 App 变为活跃状态
+        manager.appDidBecomeActive()
+        XCTAssertEqual(manager.state, .idle)
+    }
+
+    func testNonCapturingBackgroundLifecycleHandling() {
         let manager = ScreenCaptureManager()
         // 在非 capturing 状态下切后台切前台不应破坏状态
         manager.appDidEnterBackground()

@@ -14,6 +14,20 @@ struct CaptureView: View {
                         .foregroundStyle(stateColor)
                     Text(statusDetail)
                         .foregroundStyle(.secondary)
+
+                    if manager.state == .capturing {
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(Color.green)
+                                .frame(width: 8, height: 8)
+                            Text("已成功开启录制！请直接上滑切换到目标 App 缓慢滚动。")
+                                .font(.caption.bold())
+                                .foregroundStyle(.green)
+                        }
+                        .padding(10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.green.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+                    }
                 }
                 .padding(.vertical, 8)
             }
@@ -27,8 +41,16 @@ struct CaptureView: View {
                 LabeledContent("后台帧增长", value: "\(manager.diagnostics.backgroundFrameDelta)")
             }
 
+            Section("录制设置") {
+                Toggle("切回 LongShot 自动结束录制", isOn: $manager.autoStopOnForeground)
+                Text("默认关闭（建议手动点击「停止捕获」）。开启后，在外部 App 滚动至少 2 秒后切回 LongShot 将自动停止。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("操作提示") {
-                Text("授权后切换到需要截图的 App，缓慢向下滚动。完成后返回 LongShot 并停止。")
+                Text("1. 点击「开始捕获」并在弹窗中选择「共享整个屏幕」。\n2. 关闭弹窗后，直接上滑切换到需要长截图的 App 缓慢向下滚动。\n3. 截屏完毕切回 LongShot 点击「停止捕获」，或点击顶部红点停止。")
+                    .font(.footnote)
                 Label("屏幕内容仅在设备本地处理", systemImage: "lock.shield")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -112,13 +134,13 @@ struct CaptureView: View {
 
     private var statusDetail: String {
         switch manager.state {
-        case .idle: "点击开始后，在系统面板中选择整个屏幕。"
-        case .selectingContent: "等待你在系统屏幕共享面板中确认。"
-        case .starting: "正在建立本地屏幕帧管线。"
-        case .capturing: "可以切换到其他 App 开始滚动。"
-        case .stopping: "正在安全释放屏幕捕获流。"
-        case .completed: "关键帧已保存，后续阶段将进入拼接。"
-        case .failed: "你可以修正问题后重试。"
+        case .idle: "点击下方按钮，在弹出的系统面板中选择整个屏幕。"
+        case .selectingContent: "系统选择器已唤起：请选择「共享整个屏幕」并确认。若未开始请重试。"
+        case .starting: "正在建立本地屏幕捕获流与帧采集管线..."
+        case .capturing: "正在录制！请切换到目标 App 缓慢向下滚动。录制完成后返回点击「停止捕获」。"
+        case .stopping: "正在安全停止屏幕流并保存关键帧..."
+        case .completed: "关键帧采集完成，可点击下方按钮生成长截图。"
+        case .failed: "捕获未成功，你可以检查授权后重试。"
         }
     }
 

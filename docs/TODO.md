@@ -7,6 +7,7 @@
 | # | 模块 | 需求描述 | 状态 | 关联批次 | 优先级 |
 |:---|:---|:---|:---|:---|:---|
 | 1 | Capture | 修复点击【开始捕获】系统选择器闪退缺陷 | 已收口 | `docs/batches/2026-09-21-FIX-CAPTURE-CRASH.md` | P0 |
+| 2 | Capture | 修复关闭屏幕选择器返回 App 误触发提前停止捕获缺陷 | 已收口 | `docs/batches/2026-09-21-FIX-PREMATURE-CAPTURE-STOP.md` | P0 |
 
 *状态流转：`待讨论` -> `已规划` -> `进行中` -> `已收口` -> `已挂起`*
 
@@ -17,6 +18,7 @@
 | # | 发现来源 | 问题描述 | 阻塞级别 | 计划处置批次 |
 |:---|:---|:---|:---|:---|
 | D1 | 真机运行 | iOS 27 真机点击开始捕获闪退（unrecognized selector `presentUsing:`） | 🔴 Critical（已闭环） | 2026-09-21-FIX-CAPTURE-CRASH |
+| D2 | 真机运行 | 选择屏幕后关闭选择器浮层时 appDidBecomeActive 误将前台激活判定为切回而提前 stopCapture | 🔴 Critical（已闭环） | 2026-09-21-FIX-PREMATURE-CAPTURE-STOP |
 
 ---
 
@@ -25,4 +27,5 @@
 | # | 事项 | 最终状态 | 闭环批次 | 闭环日期 |
 |:---|:---|:---|:---|:---|
 | 1 | 修复点击【开始捕获】闪退缺陷 | 已收口 | BATCH-20260921-FIX-CAPTURE-CRASH | 2026-09-21 |
+| 2 | 修复关闭选择器误提前停止捕获缺陷 | 已收口 | BATCH-20260921-FIX-PREMATURE-CAPTURE-STOP | 2026-09-21 |
 | - | Phase 0~3 核心功能开发与 CI 打包发布 | 已收口 | 初始批 | 2026-09-21 |
