@@ -116,7 +116,7 @@ jobs:
           else
             echo "==> 未配置签名证书，执行免签（Sideload / AltStore / TrollStore 适配）Release 归档与 IPA 封装..."
             
-            set -o pipefail
+            BUILD_STATUS=0
             xcodebuild archive \
               -project LongShot.xcodeproj \
               -scheme LongShot \
@@ -128,11 +128,19 @@ jobs:
               CODE_SIGNING_REQUIRED=NO \
               CODE_SIGN_IDENTITY="" \
               DEVELOPMENT_TEAM="" \
-              2>&1 | tee build.log
+              > build.log 2>&1 || BUILD_STATUS=$?
+
+            if [ $BUILD_STATUS -ne 0 ]; then
+              echo "::error title=xcodebuild failed::xcodebuild archive failed with exit code $BUILD_STATUS"
+              echo "==================== XCODEBUILD ERROR LOG (LAST 100 LINES) ===================="
+              tail -n 100 build.log
+              echo "==============================================================================="
+              exit $BUILD_STATUS
+            fi
 
             # 检查归档产物
             if [ ! -d "build/LongShot.xcarchive/Products/Applications/LongShot.app" ]; then
-              echo "::error::未在归档中找到 LongShot.app，构建失败！最近 60 行日志："
+              echo "::error::未在归档中找到 LongShot.app，构建失败！"
               tail -n 60 build.log
               exit 1
             fi
@@ -147,6 +155,21 @@ jobs:
           # 计算 SHA256 校验和
           shasum -a 256 LongShot-Release.ipa > LongShot-Release.ipa.sha256
           echo "IPA 构建完成，SHA256: $(cat LongShot-Release.ipa.sha256)"
+
+      - name: Append Diagnostics to Summary
+        if: always()
+        run: |
+          echo "### Xcode & SDK Information" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          xcodebuild -version >> $GITHUB_STEP_SUMMARY 2>&1 || true
+          xcodebuild -showsdks >> $GITHUB_STEP_SUMMARY 2>&1 || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          if [ -f build.log ]; then
+            echo "### Xcodebuild Log (Tail 100 lines)" >> $GITHUB_STEP_SUMMARY
+            echo '```text' >> $GITHUB_STEP_SUMMARY
+            tail -n 100 build.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Upload Build Log
         if: always()
