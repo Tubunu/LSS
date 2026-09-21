@@ -57,7 +57,7 @@ struct HomeView: View {
                     .font(.largeTitle.bold())
                     .accessibilityElement(children: .combine)
 
-                    if captureManager.state == .completed, let dir = captureManager.sessionDirectory {
+                    if captureManager.state == .completed, captureManager.sessionDirectory != nil {
                         VStack(alignment: .leading, spacing: 12) {
                             Label("捕获已完成，可生成长图", systemImage: "sparkles")
                                 .font(.headline)

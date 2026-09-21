@@ -54,6 +54,26 @@ jobs:
             sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER: com.example.LongShot/PRODUCT_BUNDLE_IDENTIFIER: ${{ inputs.bundle_id }}/g" project.yml
           fi
 
+      - name: Build ScreenCaptureKit Stub Dylib
+        run: |
+          mkdir -p Frameworks/ScreenCaptureKit.framework
+          SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+          clang -target arm64-apple-ios18.0 \
+            -isysroot "$SDK_PATH" \
+            -dynamiclib \
+            -install_name /System/Library/Frameworks/ScreenCaptureKit.framework/ScreenCaptureKit \
+            -current_version 1.0.0 \
+            -compatibility_version 1.0.0 \
+            -framework Foundation \
+            -framework CoreMedia \
+            -framework CoreGraphics \
+            Frameworks/ScreenCaptureKit_stub.m \
+            -o Frameworks/ScreenCaptureKit.framework/ScreenCaptureKit
+          
+          echo "==> 验证生成产物 Mach-O 类型与 install_name:"
+          file Frameworks/ScreenCaptureKit.framework/ScreenCaptureKit
+          otool -D Frameworks/ScreenCaptureKit.framework/ScreenCaptureKit
+
       - name: Generate Xcode Project
         run: |
           xcodegen generate

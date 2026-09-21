@@ -67,7 +67,7 @@ struct CaptureView: View {
                 .accessibilityIdentifier("stopCapture")
             }
             if manager.state == .completed {
-                if let dir = manager.sessionDirectory {
+                if manager.sessionDirectory != nil {
                     Button("生成长截图") {
                         showsProcessing = true
                     }

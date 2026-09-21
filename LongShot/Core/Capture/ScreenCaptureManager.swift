@@ -22,7 +22,7 @@ final class ScreenCaptureManager: NSObject, ObservableObject, @unchecked Sendabl
         picker.add(self)
         picker.isActive = true
 
-        var configuration = SCContentSharingPickerConfiguration()
+        let configuration = SCContentSharingPickerConfiguration()
         configuration.showsMicrophoneControl = false
         configuration.showsCameraControl = false
         picker.defaultConfiguration = configuration
